@@ -1,0 +1,10 @@
+name: LagAssist
+authors: [Stefatorus, EntryRise]
+version: 2.29.0
+api-version: 1.13
+description: LagAssist is an advanced anti-lag solution that allows server owners find and remove lag using multiple advanced and efficient methods.
+main: com.entryrise.lagassist.Main
+softdepend: [Vault]
+commands:
+  lagassist:
+    description: The main command of LagAssist, a Performance Analysis and Optimization Tool.

@@ -1,0 +1,787 @@
+#  _                                  _     _   
+# | |                   /\           (_)   | |  
+# | |     __ _  __ _   /  \   ___ ___ _ ___| |_ 
+# | |    / _` |/ _` | / /\ \ / __/ __| / __| __|
+# | |___| (_| | (_| |/ ____ \\__ \__ \ \__ \ |_ 
+# |______\__,_|\__, /_/    \_\___/___/_|___/\__|
+#               __/ |                           
+#              |___/     By EntryRise       
+# 
+# This is the default configuration. We suggest using it as it is.
+# If you need help configuring it, please visit our dedicated Discord Server.
+# DISCORD: https://discord.gg/4aWWPcb
+
+# Smart cleaner removes mobs based on the below configuration...
+#
+# TIP: This will not remove named mobs, even if they are in the list.
+# This follows the vanilla rule - don't despawn named entities, which
+# players are already accustomed to.
+smart-cleaner:
+  # Do you want the system to be in whitelist or blacklist mode?
+  # TIP: Whitelist - All except these get deleted ; Blacklist is the opposite
+  whitelist: false
+  # The plugin will begin to cull mobs if the TPS drops below the set value.
+  # EG: If TPS is under 16, LagAssist will begin to cull mobs that are named below.
+  # TIP: Set to 0.0 to disable it.
+  maxtps-cull: 16.0
+  # Automatically disable mob spawning if TPS is under this value.
+  # EG: If TPS is under 14, LagAssist will disable mob spawning.
+  maxtps-disablespawn: 14.0
+  # List of the mobs that will get removed (or kept) by the smart-cleaner - (depending on whitelist or blacklist)
+  # Mob names: htttps://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+  mobs:
+  - "ZOMBIE"
+  - "CREEPER"
+  - "SKELETON"
+  - "WITHER_SKELETON"
+  - "SQUID"
+  - "SPIDER"
+  - "SILVERFISH"
+  - "PIG_ZOMBIE"
+  - "MINECART"
+  - "ILLUSIONER"
+  - "GHAST"
+  - "HUSK"
+  - "EVOKER"
+  - "ENDERMAN"
+  - "ENDERMITE"
+  - "ELDER_GUARDIAN"
+  - "CAVE_SPIDER"
+  - "BAT"
+  - "BLAZE"
+# For Creative Servers
+#  - ARMOR_STAND
+# For Factions Servers
+#  - PRIMED_TNT
+
+
+# The smart stacker system allows you to efficiently stack mobs in a chunk based on a
+# cubic chunk splitting system. This algorithm is extremely light-weight compared
+# to past stacking algorithms, which means more performance left for your server.
+smart-stacker:
+  # Should we enable the smart stacker system?
+  enabled: false
+  checks:
+    # Run stack check when a mob spawns.
+    spawn-check: true
+    # (!)  Do NOT enable the BElOW setting under any circumstances (unless you have had explicit guidance from us)
+    pre-spawn-check: false # <-- DO NOT ENABLE
+    # Should we try to stack mobs when they change splits?
+    # Disabling it may improve performance, but it's not recommended since it disables
+    # stacking when moving from one chunk to another.
+    split-change-check: true
+  gameplay:
+    # Should players always see stacked mob tags?
+    # (!) Setting to false will make it so you can only see mob stacking when hovering over a mob
+    tag-visibility: true
+    # (!) You must keep {size} or stacking will break
+    tag-format: "&f{type} &cx{size}"
+    # What spawn reasons should be allowed for mob stacking. 
+    # Use ALL to allow all mobs to stack, or alternatively use any value from here:
+    # VALUES: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/event/entity/CreatureSpawnEvent.SpawnReason.html
+    spawn-reasons:
+    - "ALL"
+    # What entity types you want to be stackable.
+    # Mob names: htttps://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+    stackable:
+#    - "SKELETON"
+#    - "ZOMBIE"
+#    - "BLAZE"
+#    - "VINDICATOR"
+#    - "VILLAGER"
+#    - "WITCH"
+#    - "SPIDER"
+#    - "EVOKER"
+  technical:
+    # The amount of vertical splits per chunk (Must divide 256). A lower amount makes the stacking area go down and thus
+    # improves compatibility with farms.
+    # (!) Setting it under 4 is not recommended. We reccomend 8 or 16.
+    splits: 8
+    # Should we remove all stacked mobs when the plugin is disabled? (DISABLED FEATURE)
+    # (!) Highly suggested to be left on true, since it can help a lot with TPS. It
+    #     also prevents the algorithm having to search the old mobs when the chunk issue
+    #     empty which is a huge bonus.
+    # (!) If left on false, the system will do stacking on chunk enable.
+    # shutdown-clean: false <-- DO NOT ENABLE
+    # Should we amplify drops to get the approximate value of what those mobs would drop
+    # if they were to be killed one by one?
+    drops-fix: true
+    # What's the highest amount a stack can get to? Since there's a limit of 1 stack per
+    # split, it's useful to keep this higher.
+    max-stack: 500
+    # The min-stack feature allows you how many mobs should be in a split before attempting to stack them.
+    # This can help retain some vanilla behaviour, but will have a negative effect on performance. Due to
+    # popular demand, it was added as the overall stacker should STILL be better performance wise than the
+    # alternatives, but don't set a min stack size if performance is your key concern.
+    #
+    # (!) To still have decent performance impact, LagAssist uses caching, which may result in the actually
+    #     mob counts that are checked to stack to slightly differ. This should not be very noticeable.
+    #
+    min-stack: 0
+    # This section deals with custom handling for damage for stacked mobs.
+    damage:
+      # What damage causes should be multiplied by the stack count.
+      # (!) This helps with farms. For example, multiplying fall damage fixes
+      #     drop farms.
+      multiply:
+      - "CRAMMING"
+      - "FALL"
+      - "DROWNING"
+      - "CONTACT"
+      - "VOID"
+      - "FIRE_TICK"
+      - "DRYOUT"
+    # Entity Comparison is used to prevent 2 similar entities from being stacked together.
+    # Extremely useful when you want to retain vanilla-like gameplay.
+    comparison:
+      sheep: true
+      pig: true
+      slime: true
+      villager: false
+      tameable: true
+      horse: true
+      # Checks for the approximate age of the mob
+      ageable: false
+
+
+# This is a simple mob modifier. It changes how some mobs behave to improve the server performance.
+mob-manager:
+  # Disable armorstand gravity. This might help with creative servers which have a lot of armorstands.
+  no-armorstand-gravity: false
+  # Disable slime splitting, approximating the drops and health of a vanilla confrontation. This is very
+  # useful for larger than vanilla slimes.
+  # NOTE: This also helps for vanilla slimes, but shouldn't (in my opinion) be used unless there is 
+  #       lag from slimes.
+  simple-slime: false
+
+
+# Micro features represent simple yet effective ways to reduce lag. It generally includes simple to implement
+# features that would otherwise not need their own section.
+microfeatures:
+  # Optimize farms by automatically destroying crops that are near a piston facing them.
+  # Helps reduce the need of redstone for these farms. Really useful on 1.8.8 factions servers.
+  optimize-growable-farms:
+    enable: false
+    blocks:
+    - "PUMPKIN"
+    # Two versions (flattening and pre)
+    - "MELON_BLOCK"
+    - "MELON"
+  # Fixes issue with redstone item spam causing lag on the server.
+  # https://rz.al/u/5591.png
+  click-spam-fix:
+    enable: false
+    # Blocks that will increase the counter/
+    blocks:
+    - "LEVER"
+    counter:
+      message: "&cStop interacting with this block so fast!"
+      # How much to increment each interact?
+      increment: 20
+      # Max value before showing the message
+      max: 80
+  # This feature stack growables in a chunk and only drops items on a full stack.
+  # IT should reduce the entity counts in the chunk, and can help on servers where
+  # chunkhoppers are not fully adopted.
+  #
+  # (!) Not recommended for servers that do not have extremely huge farms, as the
+  #     drops from smaller farms will get delayed.
+  stack-growables:
+    enable: false
+    # What is the stack size? Amounts over 64 won't render.
+    stacksize: 64
+    blocks:
+    - "CACTUS"
+    - "SUGAR_CANE"
+
+
+# Laggy Chunk detection. You can fiddle around and find the best settings for your
+# server.
+#
+# TIP: Find what kind of tiles or entities lag your server and set them a proper lag score
+#      here. The default values should be fine, but finding the best settings for yourself is always
+#      the best way.
+chunkanalyse:
+  # Teleport command that will be issued when you click the text.
+  # PLACEHOLDERS: {x}, {y}, {z}, {chunkx}, {chunkz} {world}
+  #
+  # TIP: Set it to a command that you like. This can be used to automatically clear lag in chunks, unload it, etc.
+  tp-cmd: "lagassist tpchunk {world} {chunkx} {chunkz}"
+  # Score at which the server will consider the chunk laggy and make it appear in the list. You should fiddle around with it so it only shows
+  # the chunks that you want it to find.
+  #
+  # TIP: The amount of chunks /lagassist chunkanalyse will show.
+  #      (It will always show the top (amount value) laggiest chunks.)
+  ammount: 10
+  # Entity & Material names for laggy values.
+  #
+  # Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+  # Entities: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+  # Tile Entities: https://minecraft.gamepedia.com/Block_entity
+  #
+  # TIP: Only detects Tile entities & entities. Normal blocks aren't ticked. This means that it would lag if we were to check the normal blocks.
+  #      At the same time, normal blocks don't lag the server.
+  values:
+    # -------------
+    # TILE ENTITIES
+    # -------------
+    chest: 1
+    trapped_chest: 2
+    burning_furnace: 3
+    sign: 1
+    # Beacons don't really lag the server, but they usually appear in laggy chunks due to them being placed near grinders & automatic farms.
+    # High score due to their rarity.
+    beacon: 35
+    hopper: 6
+    note_block: 4
+    piston_extension: 5
+    dispenser: 10
+    # Mob spawners really lag the server. We suggest setting a high score for them.
+    mob_spawner: 60
+    # --------------
+    # NORMAL ENTITIES
+    # --------------
+    # Players themselves. They have a decent score due to them being a source of lag (they create farms, afk at them, etc)
+    player: 15
+    # Normal mobs that are found in a chunk. Set the value to a moderate one. They don't lag the server so much.
+    # Creeper score slightly higher due to the explosion that could lag the server a bit.
+    zombie: 2
+    spider: 2
+    skeleton: 2
+    creeper: 3
+    # Passive mobs. Might signal some custom spawner farms. They are pretty optimised in AdvancedSpigotTweaks though.
+    cow: 1
+    pig: 1
+    # Thrown items. Don't pose a huge issue due to them being optimised by AdvancedSpigotTweaks. The endereye (ender_signal) might
+    # mean there is a end portal nearby, that might mean more activity (and thus, lag). Egg can spawn mobs and such has a higher score.
+    ender_signal: 5
+    egg: 3
+    fishing_hook: 2
+    ender_pearl: 2
+    snowball: 2
+    arrow: 1
+    # Static entities might lag the server, but it all depends. They usually signal a big player city, and such is related to lag.
+    painting: 2
+    item_frame: 3
+    armor_stand: 4
+    # Stacked items & XP do not lag the server as much. If you use AdvancedSpigotTweaks, keep that in mind.
+    # Fireworks might lag the server, especially if they have big explosions.
+    dropped_item: 2
+    experience_orb: 3
+    firework: 8
+    # Bosses have complex abilities that might lag your server. The ability entities can also offer additional proof the
+    # bosses are actively fighting.
+    ender_dragon: 85
+    ender_crystal: 10
+    wither: 55
+    wither_skull: 20
+    # TNT is a severe lag issue. We recommend setting primed TNT (activated TNT) to a higher score. Remember that a TNT by
+    # itself doesn't lag as much, but they are used in mass numbers in cannons, etc.
+    # minecart_tnt are even bigger of an issue due to their moving mechanics.
+    primed_tnt: 7
+    minecart_tnt: 15
+    # Highly active entities. Includes entities that do many checks, and are used for mechanics.
+    minecart_hopper: 20
+    minecart_mob_spawner: 80
+    endermite: 5
+
+
+# Chunk-Manager System.
+chunk-manager:
+  # Should we enable the chunk-manager? It can highly help with memory issues if you have too many loaded chunks.
+  # NOTE: You need to have the max view distance set in your server.properties file.
+  #
+  # (!) This feature will only work on Paper servers.
+  enabled: false
+  # What is the maximum amount of chunks you want all players to be able to load at once.
+  # TIP: The view distance is calculated using this formula:
+  #      SQRT(MAX-CHUNKS / PLAYERS / 4).
+  # EG: If the max chunks are at 6500, and you have 100 players online
+  #     your view distance would be at 4.
+  # (!) In order for this to work, please set your view distance in 
+  # both server.properties & spigot.yml to the minimum view distance you
+  # want to set.
+  max-chunks: 5000
+  # (!) Try making it larger progressively. Sometimes it's safe to limit it
+  #     at a smaller view distance.
+  max-view: 12
+    
+
+#LagMeasures Config
+lag-measures:
+  # Lag measures automatically runs anti-lag actions if the server has
+  # under a set amount of TPS. To configure the TPS values, look for
+  # the max TPS setting in all LagAssist systems.
+  #
+  # Announce the lag cleaning in the console and chat.
+  announce:
+    # Show players that the lag-cleaning has occured.
+    enabled: false
+    # Should we show the staff a different, more exact message of lag-measures?
+    # Permission node: lagassist.notify
+    staffmsg: true
+    message: "&c&lLag&f&lAssist &e» &fRemoving server lag..."
+  # Set the time between the lag-cleaning cycles.
+  # We suggest keeping it on 6000 as the fact that it disables redstone
+  # machines might annoy some players if it is done too often.
+  #
+  # TIP: Time is measured in ticks. 1 second has 20 ticks. E.g for 60 seconds, set to 60 * 20 = 1200
+  # (For 10 second interval, set to 200)
+  # Default: 6000 ticks - 3 minutes interval
+  timer: 6000
+
+
+# RedstoneCuller Tweaks
+redstone-culler:
+  # Chance from 1 to 100 for the redstone to break. If you don't think
+  # redstone could lag your server, disable it.
+  #
+  # The breaker system griefs some redstone from Players' contraptions in
+  # order to prolongue the effect of the cull. If it is set to 0, it will
+  # be harder to get rid of redsotne lag, because players can just start
+  # their farms & Lag Machines back up in a matter of seconds.
+  #
+  # TIP: The chance doesn't need to be too big in order for their farms to
+  #      break. The system triggers for all of the active redstone trails and will
+  #      break X percent of the track. Remember that even if you have chance 2, if
+  #      we have 100 redstone, you will still have an effect on them.
+  #
+  # (!) TO disable set chance to 0.
+  #     It is highly recommended to set to 2-5 to prevent people from simply re-starting their
+  #     lag machines after they are culled. Most malicious users will and will not care that they
+  #     have to spend hours babysitting their lag machine.
+  #
+  chance: 0
+  #
+  # What blocks do you want to be affected by the redstone culler. This allows you
+  # to prevent pressure plates or other valuable blocks that don't necessarily cause
+  # lag to be protected from the culler.
+  affected-materials:
+  - "REDSTONE"
+  - "REDSTONE_WIRE"
+  - "REDSTONE_COMPARATOR"
+  - "REDSTONE_COMPARATOR_OFF"
+  - "REDSTONE_COMPARATOR_ON"
+  - "REDSTONE_TORCH_OFF"
+  - "REDSTONE_TORCH_ON"
+  - "REDSTONE_TORCH"
+  - "DIODE"
+  #
+  # After how many ticks should the redstone be checked if the signal changes? A too small value
+  # will not stop clocks, and a too large value will make destructive checks less effective.
+  #
+  # TIP: The recommmended value for destructive checks is 10-30; and 50-70 without.
+  ticks: 60
+  # Destructive checks. Implemented to combat Observer lagmachines, which can bring
+  # a I7-4770k machine to it's knees quite easily. It listens for singal changes and
+  # removes all observers that go over a set value.
+  # Lag-Machine example: http://stefatorus.go.ro/img/SpigotTweaks/ObserverFix.gif
+  #
+  # (!) This should be safe, but at the same time, don't enable it without any reason.
+  #     These lag machines are not found very often, and there is no reason to try fix them
+  #     if everything works fine.
+  destructive:
+    # Should we enable destructive checks?
+    enabled: false
+    # How many updates should the observer do in order to remove it? We recommend the default value.
+    value: 16
+  #
+  # Automatic Redstone culling will occur if TPS is under this value.
+  # EG: If TPS is under 19, LagAssist will cull redstone each time the monitor runs.
+  # TIP: Set to 0.0 to disable it.
+  maxtps: 19.0
+
+
+# Disable hopper crafting. Hoppers are one of the issues non-minigame server owners have to face. Enabling this
+# check allows you to make hoppers more rare. This won't really affect farms, but will make them more efficient.
+#
+# Hoppers are easy to craft in vanilla minecraft, and this makes them to get overused (>100 HOPPERS/FARM)
+hopper-check:
+  enabled: false
+  reason: "&c&lLag&f&lAssist &e» &fHopper crafting has been disabled."
+  # Sabotage hoppers in order to defer players from using them. This
+  # will break huge farms in a while, and has a bigger chance of destroying
+  # large hopper lines instead of single hoppers. (multyply by how many)
+  #
+  # TIP: This is is not percent, it is per10mille (X in 10000 chance).
+  # Don't set it too big. If you set it to 1 or 2, it will make sure
+  # huge afk farms will break and won't lag your server for actually
+  # active players, while also not annoying the less-extreme players.
+  #
+  # Disable by setting it to 0.
+  chance: 0
+  # Make item drops go directly into hoppers. This was designed with
+  # factions servers in order to replace plugins like crophoppers and
+  # in general improve performance for many hopper drops.
+  chunk-hoppers:
+    # Should we enable chunk hoppers? They will catch all items
+    # that aren't dropped by players and are ine items list and
+    # place it in the chosen hopper.
+    enabled: true
+    # What mode do you want to use for chunk hopper additions
+    # FIRST   - Uses first hopper that is available
+    # RANDOM  - Get a random hopper (may help with logistic speed)
+    # CLOSEST - Uses hoppers in ordered by their range to the item.
+    mode: "RANDOM"
+    # How do you want chunk-hoppers to be defined?
+    # DEFAULT - All hoppers become chunk-hoppers. Useful for already
+    #           established servers that haven't used them in the current
+    #           season or wipe.
+    # NAME    - Hoppers being named customly are chunk-hoppers. Will reduce
+    #           the amount of hoppers that need sorted and thus will possibly
+    #           improve performance (if they are properly advertised on the server)
+    define: "&eChunk &fHopper"
+    # The filter system allows you to give players the ability to filter what items the chunk hoppers will pick. It is really useful
+    # for creating simple & performance efficient filters, along with incentivising people to use chunk hoppers.
+    filter:
+      # The default items that chunk hoppers should pick up. This is used in case a hopper doesn't have a custom filter.
+      # (!) In case you use the custom hopper filter, please make sure to set the slots larger than the amount of slots in default.
+      default:
+      - "IRON_ORE"
+      - "ROTTEN_FLESH"
+      - "BONE"
+      - "ARROW"
+      gui:
+        # The name that the filtering GUI should have. This can be used to customize the looks of the
+        # filter system.
+        name: "&d&lHopper Filter"
+        # This represents the size of the GUI that the filter represents. Tweaking these settings allows
+        # you to choose how complex a filter can get.
+        # (!) Must be a multiple of 9.
+        size: 18
+    # Mob hoppers allow people to instanly funnel spawner mob drops to chunk hoppers. It works using the filter that is found above.
+    # Players will have to add a mob spawnegg to the hopper to allow it to catch the respective mob.
+    mob-hopper:
+      # (!) Note: Mob Hoppers currently only work on 1.13+ servers.
+      #
+      # This check can be used to alleviate lag during extreme lag sessions, or used temporarily. While we suggest
+      # keeping it on all the times, if your players don't mind having to have their grinder account for it, you can
+      # make it only run when the server lags.
+      # (!) To disable mob hoppers from working, just set maxtps to 0.
+      #     We suggest 17 if you want it temporary, or 20 if you want it permanent.
+      maxtps: 0.0
+      # The reasons that the mob hopper will work for. This allows you to exclude normal mob
+      # spawns from being funneled to the chunk hopper.
+      spawn-reasons:
+      - "SPAWNER"
+      - "NETHER_PORTAL"
+      # Multiplying the drop amount can help you fiddle with mob spawns without changing the
+      # amount players win from a hopper, effectively tuning performance drastically without
+      # negatively affecting the players.
+      multiplier: 1
+      # Entity Materials represent the materials that will allow their respective mobs to
+      # get caught in mob hoppers.
+      filter-items:
+        zombie: "ROTTEN_FLESH"
+        creeper: "GUNPOWDER"
+        skeleton: "BONE"
+    # Automatically sell items that appear in this list before attempting to place them in the chunkhopper.
+    # Useful and efficient replacement for autosell chests. Requires Vault to function.
+    sell-hopper:
+      # Should we enable the sellhopper system?
+      # (!) To enable, please also add the "lagassist.sellhopper.PERCENTAGE" permission to the player.
+      #     Example: lagassist.sellhopper.70 gives the player 70% of the price.
+      # 
+      enabled: false
+      # The amount users will be paid at the end of the payout session. The payout session is used to prevent
+      # lag.
+      prices:
+        ROTTEN_FLESH: 10
+        GUNPOWDER: 5.3
+        BONE: 1
+        
+
+# The limiter allows you to limit the amount of mobs & tiles there are on a single chunk.
+# This system can be used to deny abusing spawning mobs, minecarts, etc.
+#
+# The soft-limit represents the limit to where mobs will be allowed to spawn in the chunk.
+# The hard-limit represents the limts to where mobs will be removed when brought from other chunks (eg: Water slides or rails)
+#
+# This allows you to limit mobs while also allowing them to move between chunks.
+limiter:
+  # The amount of time between chunk cleans. Setting it to a small amount can make your server have more lag,
+  # while a larger amount may mean a longer time between checks
+  timer-time: 1200
+  # Should the limiter ignore named mobs?
+  ignore-named-mobs: false
+  mobs:
+    # The maximum limit of mobs that can spawn per chunk. Set this to a larger number, and use
+    # the per-limit system to set limits for certain types of mobs.
+    total-limit: -1
+    soft-limit:
+      # Dropped items are here because we don't want dropped items not to spawn.
+      dropped_item: 200
+      entity2: -1
+      #armor_stand: 20
+    hard-limit:
+      entity1: 100
+      #armor_stand: 100
+  tiles:
+    # The maximum limit of tile entities that can be placed per chunk. Note that there are
+    # very many types of tile entities, and they don't produce so much lag. This has limited
+    # uses for lag prevention, but may be used for other tasks.
+    # (!) Set to '-1' to disable it.
+    total-limit: -1
+    per-limit:
+      #crafthopper: 16
+      #craftchest: 128
+      tileentity1: -1
+      tileentity2: -1
+
+
+# Anti Spawner-Lag implementation for large servers with a lot of spawners.
+spawner-check:
+  # Should we enable the spawner check?
+  enabled: true
+  # Should we break spawners with a set chance (permille)? This highly helps
+  # severs where spawners are very easily procured.
+  breaker: false
+  # What chance (permille) should we have.
+  # EG: If you set it to 5, the chance will be 5/1000 which is 1/200;
+  chance: 5
+  # Custom spawner implementation. This should work with all spawner
+  # plugins, like EpicSpawners or SilkSpawners.
+  custom-settings:
+    # Delay in ticks between mob spawner spawns.
+    delay: 300
+    # (!) 1.12 ONLY FEATURES
+    # How many mobs should we spawn. This can greatly lower the mob lag
+    # from mob-spawners.
+    amount:
+      min: 1
+      max: 2
+    # How spread out we should spawn the entities. We recommend keeping it lower.
+    spawnrange: 3
+    # The maximum distance a player can be in order for the spawner to be active.
+    player-range: 12
+  # Automatic Spawner-Check activator. This will have no effect if the check is
+  # disabled.
+  # EG: If TPS is under 16, LagAssist will start modifying how the spawners work.
+  # TIP: Set to 0.0 to disable it.
+  maxtps: 16.0
+
+# The Physics system disables laggy or ununsed game mechanics that might lag your server. The physics system can
+# be set to be enabled on start or by using /lagassist.
+#
+# TIP: Disabling it here won't actually remove the checks when you use /lagassist. If you want some checks to
+# work, please add them here.
+deny-physics:
+  # Should we disable physics just as the server starts?
+  # TIP: It can be used to modify gameplay features.
+  # For example, you can disable decay, fire & melting for a build server.
+  enabled: false
+  # Automatic Physics disabler will occur if TPS is under this value.
+  # EG: If TPS is under 17, LagAssist will disable Physics
+  # TIP: Set to 0.0 to disable it.
+  maxtps: 17.0
+  # What should we disable? Please make sure this fits your game perfectly. If you have a cannoning server,
+  # disabling explosions would be useless. At the same time, you shouldn't enable them for a survival server.
+  systems:
+    physics: false
+    explosions: true
+    grassspread: true
+    melting: true
+    pistons: true
+    fire: true
+    liquidspread: true
+    decay: true
+    redstone: true
+    # Had reports of noteblock & observer machines to lag the server significantly
+    noteblock: true
+
+    
+benchmark:
+# Benchmarking can be used to approximate the max players your server will be able
+# to sustain.
+#
+# TIP: If you want more accurate results (and don't mind waiting longer), change the
+# ftp link under here.
+# Placeholders: %RND% - Generate random name (useful for upload testing).
+#
+# (!) The size for upload is in bytes. A MB = 1.000.000 bytes. Default is 50MB
+  download:
+    link: "https://speed.cloudflare.com/__down?bytes=50000000"
+  upload: 
+    link: "https://speed.cloudflare.com/__up"
+    size: 50000000
+
+
+blacklisted-worlds:
+# Worlds where this plugin will have no effect. All lag-measures will simply be disabled.
+# (!) Analysis features are not disabled. (LagMonitor, LagMap)
+  enabled: false
+  list:
+  - blacklisted1name
+  - blacklisted2name
+  
+safety-manager:
+# The safety manager tries to lower the chances of a server crash when the server
+# is under extreme load or doesn't have enough resources to run.
+#
+# It will safely shut down the server whenever the respective settings are met.
+# (!) This is an experimental feature and is still not recommended by default.
+  enabled: false
+  # Triggered when the system's space is not enough for a minecraft server. Shutting
+  # down the server prevents glitched chunks from forming.
+  no-space:
+    # Space for the server to start up in bytes. The default is 50 MB.
+    startup-space: 50000000
+    # Threshold under which server will safely shutdown th server. Default is 20MB.
+    shutdown-space: 20000000
+  # The anti-crasher module helps prevent players from crashing the server by spamming packets.
+  #
+  # It does so by limiting the amount of packets sent per second, along with their size.
+  anti-crasher:
+    # Useful against book crashers.
+    settings:
+      # When debug mode is on, you can see the serialized packets. Useful for analysing crash clients
+      # and solving them properly.
+      # (!) Only shows for packets that have a config location.
+      debug: false
+    packets:
+      packetplayinsetcreativeslot:
+        # The amount of packets recorded before the player gets dropped.
+        drop-threshold: 350
+        # The amount of packets to 'forget' each second.
+        decay: 80
+        # The max size of packet allowed. Useful for huge pages, etc.
+        size: 10000
+        # Illegal values in the packet. The values are found using deserialzation.
+        illegals:
+        - "THIS IS A TEST ILLEGAL VALUE"
+      # Fixing custom payload spam. May cause issues with bungee if you have some strange plugins. (Check size)
+      packetplayincustompayload:
+        drop-threshold: 25
+        decay: 15
+        size: 15000
+        illegals: []
+      packetplayinuseentity:
+        drop-threshold: 25
+        decay: 21
+        size: 5500
+        illegals: []
+      packetplayinuseitem:
+        drop-threshold: 25
+        decay: 21
+        size: 5500
+        illegals: []
+      packetplayinblockdig:
+        drop-threshold: 25
+        decay: 21
+        size: 2500
+        illegals: []
+      packetplayinblockplace:
+        drop-threshold: 25
+        decay: 21
+        size: 22000
+        illegals: []
+      packetplayinwindowclick:
+        drop-threshold: 25
+        decay: 21
+        size: 19000
+        illegals: []
+      packetplayinchat:
+        drop-threshold: 30
+        decay: 20
+        size: 10000
+        illegals: []
+
+
+logcleaner:
+# The Log-Cleaner cleans old logs from the directories that you select. You can use this feature to get rid of old
+# logs.
+#
+# maxsize = Max size (in megabytes) that the log needs to have in order to be cleaned.
+# maxage = Max time (in days) that the log needs to have in order to get removed.
+#
+# (!) Both of these settings are independent. If any of these conditions are met, the
+# (!) file will get removed.
+  enabled: false
+  list:
+  - "logs/"
+  conditions:
+    maxsize: 30
+    maxage: 7
+
+
+# (!) Highly Experimental! - May cause irreversible damage to your server. Please use with care.
+super-loader:
+# The super loader feature allows LagAssist and other plugins to implement so called "NMS Expansions".
+# NMS Expansions allow the modification of minecraft classes during runtime.
+  enabled: false # (!) - should not be enabled unless strictly necessary
+
+
+stats-bar:
+# The statsbar can be accessed using /lagassist statsbar. You can configure it to better show your server
+# performance, or to better resemble your server's design choices.
+# PLACEHOLDERS: {TPS} {CHKS} {MEM} {ENT}
+  message: "&c&l⬛ &fTPS: &a{TPS} &7&m|&r &fMEM: &a{MEM}GB &7&m|&r &fCHKS: &a{CHKS} &7&m|&r &fENT: &a{ENT} &c&l⬛"
+  # The interval in which the TPS average is created. A lower value will be more acurrate but will fluctuate a lot.
+  # We suggest setting it around 6-12 for it to be the most precise.
+  tps-interval: 8
+  # How often should we refresh the statsbar? A lower value will look nicer and is more accurate, but might take more
+  # (yet a minuscule difference) processing power to show.
+  show-delay: 5
+
+  
+# The system that creates the lagmap.
+lag-map:
+  # Do you want us to fully reserve filled_map:0? This will allow for placing lagmaps in spawns and giving them to players.
+  fully-reserve: false
+
+
+# The LagAssist API provides tools for other plugins to get information from your server using
+# unconventional methods such as server-icon serialization. This provides several improvements
+# over plugin messaging.
+#
+# (!) Currently used in the EntryRise.com Monitoring tool.
+api:
+  # Config section for server icon data.
+  server-icon:
+    # THE IPS allowed to use this api. Empty to disable
+    # this feature.
+    # (!) Star matches everything
+    allowed-ips:
+    - "1.2.3.4"
+    - "9.9.9.9.*"
+
+
+# This system allows you to configure the SmartUpdater Reminder. This
+# system was developed to better notify users of important changes to
+# the plugin and alert people using old and maybe inefficient ways of
+# using the plugin.
+smart-updater:
+  # This feature allows you to choose which updates you will get
+  # notified for. The default should only announce stable versions.
+  enabled: true
+  announce:
+    # Don't announce updates that have been flagged as unsafe due to
+    # major issues that have been detected.
+    unsafe: false
+    # Minimum likes received for the update post. Likes are usually
+    # given when a large bug has been fixed or i've added a new feature.
+    min-likes: 1
+    # Minimum downloads to announce the update.
+    min-downloads: 10
+    # Minimum rating. Note that unrated counts as 5 stars.
+    min-rating: 3.95
+  settings:
+    # Tooltips notify you when something may be broken in the current LagAssist version along with
+    # information to help you to remedy the issue.
+    tooltips: true
+    # The untested system notifies you if you are using the plugin on untested versions in order
+    # to prevent misuse.
+    untested: true
+
+
+# Controls for plugins LagAssist hooks into.
+hooks:
+  # Vault is used for paying money to users.
+  vault:
+    # How much should the money be cached before being paid. A smaller value means faster payments at the expense of performance.
+    cache-duration: 1200
+    # What message should show up to players that get paid. %amount% for paid amount.
+    message: "&c&lLag&f&lAssist &e» &fYou were paid %amount% in the paywave."
+    
+# This allows the system to update the config if the plugin is updated.
+version: 32

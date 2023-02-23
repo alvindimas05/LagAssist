@@ -1,0 +1,84 @@
+#  _                                  _     _   
+# | |                   /\           (_)   | |  
+# | |     __ _  __ _   /  \   ___ ___ _ ___| |_ 
+# | |    / _` |/ _` | / /\ \ / __/ __| / __| __|
+# | |___| (_| | (_| |/ ____ \\__ \__ \ \__ \ |_ 
+# |______\__,_|\__, /_/    \_\___/___/_|___/\__|
+#               __/ |                           
+#              |___/     By EntryRise       
+# 
+# This is the default configuration. We suggest using it as it is.
+# If you need help configuring it, please visit our dedicated Discord Server.
+# DISCORD: https://discord.gg/4aWWPcb
+#
+# The Client-Side tweaks offer a nice way to improve your player's experience.
+# It offers ways to hide some laggy features in minecraft and thus simplify the game
+# for the players, while the server still works as normally.
+#
+# NOTE: THE CLIENT-SIDE TWEAKS SHOULD WORK ON 1.8-1.13.1, BUT SOME FUTURE VERSIONS
+#       MAY NOT WORK OUT OF THE BOX. PLEASE CONTACT US TO UPDATE THIS SYSTEM IF
+#       ANY PROBLEM ARISES.
+settings:
+  # The client-side tweaks are currently experimental. They have been tested comprehensively,
+  # but not against a large range of systems and minecraft versions. Please take care.
+  enabled: false
+  # Set the command that players will use to open the client-side optimizer.
+  command: "optimize"
+  # Set the permission required for players to be able to use the client optimizer.
+  permission: "lagassist.clientoptimize"
+  # The GUI name for the client-side optimizer.
+  gui-name: "&0&lPerformance Settings"
+  # The prefix of client-side optimizer messages.
+  prefix: "&c&lOptimize &e» &f"
+
+# The cliet-side tweaks that will be enabled by default
+defaults:
+  tnt: true
+  sand: true
+  particles: false
+  pistons: false
+
+language:
+  tnt:
+    name: "&cTNT Optimization"
+    lore:
+    - "&f"
+    - "&fHides TNT entities to greatly reduce lag when"
+    - "&fthere's a lot of TNT exploding at the same time"
+    - "&f"
+  sand:
+    name: "&eFalling Block Optimization"
+    lore:
+    - "&f"
+    - "&fHides sand entities to improve performance"
+    - "&fwhen there is a lot of sand falling around."
+    - "&f"
+  particle:
+    name: "&dParticle Optimization"
+    lore:
+    - "&f"
+    - "&fDisables server-side particles"
+    - "&fso the client doesn't have to render them."
+    - "&f"
+  piston:
+    name: "&8Piston Optimization"
+    lore:
+    - "&f"
+    - "&fDisables Piston Animations"
+    - "&fin order to optimize piston extensions."
+    - "&f"
+  toggleon:
+    name: "&aEnable this"
+    lore:
+    - "&f"
+    - "&fClick Here to enable this feature."
+    - "&f"
+  toggleoff:
+    name: "&cDisable this"
+    lore:
+    - "&f"
+    - "&fClick Here to disable this feature."
+    - "&f"
+  
+# This allows the system to update the config if the plugin is updated.
+version: 4
