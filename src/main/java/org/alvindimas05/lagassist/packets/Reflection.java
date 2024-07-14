@@ -23,7 +23,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.scoreboard.Scoreboard;
 import org.json.simple.JSONObject;
 
@@ -475,26 +474,7 @@ public class Reflection {
 	}
 
 	public static CommandMap getCommandMap() {
-		CommandMap commandMap = null;
-
-		try {
-			if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
-				Field f = SimplePluginManager.class.getDeclaredField("commandMap");
-				f.setAccessible(true);
-
-				commandMap = (CommandMap) f.get(Bukkit.getPluginManager());
-			}
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-
-		return commandMap;
+		return Bukkit.getCommandMap();
 	}
 
 	private static String convertToString(Object obj) {

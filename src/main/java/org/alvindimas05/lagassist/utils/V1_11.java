@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.material.Observer;
 
 import org.alvindimas05.lagassist.Main;
 
@@ -38,10 +36,10 @@ public class V1_11 {
 		removable.clear();
 	}
 
-	public static BlockFace getFace(Block b) {
-		Observer obs = (Observer) b.getState().getData();
-		return obs.getFacing();
-	}
+//	public static BlockFace getFace(Block b) {
+//		Observer obs = (Observer) b.getState().getData();
+//		return obs.getFacing();
+//	}
 
 	// public static void ObserverFix(Block b) {
 	// if (b.getType().equals(Material.OBSERVER)) {
@@ -85,7 +83,7 @@ public class V1_11 {
 		if (b == null) {
 			return false;
 		}
-		
+
 		if (b.getType().equals(Material.getMaterial("OBSERVER"))) {
 			return true;
 		}

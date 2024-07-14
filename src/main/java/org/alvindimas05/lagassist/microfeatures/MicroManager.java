@@ -19,8 +19,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.PistonBaseMaterial;
 
 @SuppressWarnings("deprecation")
 public class MicroManager implements Listener {
@@ -75,22 +73,8 @@ public class MicroManager implements Listener {
 
 		for (BlockFace face : growablefaces) {
 			Block piston = b.getBlock().getRelative(face);
-			if (piston == null) {
-				continue;
-			}
 
-			MaterialData mdata = piston.getState().getData();
-
-			if (!(mdata instanceof PistonBaseMaterial)) {
-				continue;
-			}
-
-			PistonBaseMaterial pdata = (PistonBaseMaterial) mdata;
-
-			if (pdata.getFacing().getOppositeFace() != face) {
-				continue;
-			}
-
+			if(piston.getType() != Material.PISTON || face.getOppositeFace() != face) continue;
 			breakables.add(b);
 
 			return;

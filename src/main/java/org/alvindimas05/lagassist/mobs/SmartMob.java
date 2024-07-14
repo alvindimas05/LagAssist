@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 
+import org.alvindimas05.lagassist.utils.PaperOnly;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -116,12 +117,15 @@ public class SmartMob implements Listener {
 		SpawnReason reason = e.getSpawnReason();
 
 		if (nogravityastand && (ent.getType() == EntityType.ARMOR_STAND)) {
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Main.p, new Runnable() {
-				@Override
-				public void run() {
-					ent.setGravity(false);
-				}
-			}, 40L);
+			Bukkit.getScheduler().scheduleSyncDelayedTask(Main.p, () -> {
+
+                if (Main.paper) {
+                    PaperOnly.freezeArmorstand((ArmorStand) e.getEntity());
+                } else {
+                    ent.setGravity(false);
+
+                }
+            }, 40L);
 		}
 
 		if (simpleslime && (reason == SpawnReason.SLIME_SPLIT) && ent.getType() == EntityType.SLIME) {
