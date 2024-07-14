@@ -14,7 +14,12 @@ public enum ServerPackage {
 	}
 
 	public static String getServerVersion() {
-		return Bukkit.getServer().getClass().getPackage().getName().substring(23);
+		String name = Bukkit.getServer().getClass().getPackage().getName();
+
+		// Return latest version if name has no version
+		if(!name.contains("v1_")) return "v1_21_R1";
+
+		return name.substring(name.lastIndexOf('.') + 1);
 	}
 
 	@Override

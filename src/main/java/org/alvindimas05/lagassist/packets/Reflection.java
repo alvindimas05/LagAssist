@@ -61,7 +61,6 @@ public class Reflection {
 	}
 
 	public static void Enabler() {
-
 		// PUTTING CLASSES IN ENUM.
 		Classes.CraftWorld.type = getClass("{cb}.CraftWorld");
 		Classes.World.type = getClass("{b}.World");
@@ -184,7 +183,8 @@ public class Reflection {
 		try {
 			
 			String path = classname.replace("{nms}", "net.minecraft.server" + (VersionMgr.isV_17Plus() ? "" : "." + version))
-					.replace("{nm}", "net.minecraft" + (VersionMgr.isV_17Plus() ? "" : "." + version)).replace("{cb}", "org.bukkit.craftbukkit." + version)
+					.replace("{nm}", "net.minecraft" + (VersionMgr.isV_17Plus() ? "" : "." + version))
+					.replace("{cb}", "org.bukkit.craftbukkit." + version)
 					.replace("{b}", "org.bukkit");
 			return Class.forName(path);
 		} catch (Exception e) {

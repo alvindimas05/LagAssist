@@ -20,7 +20,7 @@ public class V1_13 {
 	private static Random r = new Random();
 	
 	public static ItemStack getLagMap() {
-		ItemStack map = new ItemStack(Material.getMaterial("FILLED_MAP"), 1);
+		ItemStack map = new ItemStack(Material.FILLED_MAP, 1);
 		Reflection.setmapId(map, Data.getMapId());
 		return map;
 	}
@@ -28,26 +28,26 @@ public class V1_13 {
 	public static ItemStack[] getStatics() {
 
 		ItemStack[] pnes = new ItemStack[19];
-		pnes[0] = new ItemStack(Material.getMaterial("LIME_STAINED_GLASS_PANE"));
-		pnes[1] = new ItemStack(Material.getMaterial("MAGENTA_STAINED_GLASS_PANE"));
-		pnes[2] = new ItemStack(Material.getMaterial("YELLOW_STAINED_GLASS_PANE"));
-		pnes[3] = new ItemStack(Material.getMaterial("RED_STAINED_GLASS_PANE"));
+		pnes[0] = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+		pnes[1] = new ItemStack(Material.MAGENTA_STAINED_GLASS_PANE);
+		pnes[2] = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
+		pnes[3] = new ItemStack(Material.RED_STAINED_GLASS_PANE);
 
-		pnes[4] = new ItemStack(Material.getMaterial("COMMAND_BLOCK"), 1);
-		pnes[5] = new ItemStack(Material.getMaterial("FILLED_MAP"), 1);
-		pnes[6] = new ItemStack(Material.getMaterial("GRASS"), 1);
-		pnes[7] = new ItemStack(Material.getMaterial("SOUL_SAND"), 1);
-		pnes[8] = new ItemStack(Material.getMaterial("PISTON"), 1);
-		pnes[9] = new ItemStack(Material.getMaterial("REDSTONE_BLOCK"), 1);
-		pnes[10] = new ItemStack(Material.getMaterial("EMERALD_BLOCK"), 1);
-		pnes[11] = new ItemStack(Material.getMaterial("SPAWNER"), 1);
-		pnes[12] = new ItemStack(Material.getMaterial("SEA_LANTERN"), 1);
-		pnes[13] = new ItemStack(Material.getMaterial("TNT"), 1);
-		pnes[14] = new ItemStack(Material.getMaterial("SAND"), 1);
-		pnes[15] = new ItemStack(Material.getMaterial("PUMPKIN_SEEDS"), 1);
-		pnes[16] = new ItemStack(Material.getMaterial("PISTON"), 1);
-		pnes[17] = new ItemStack(Material.getMaterial("REDSTONE_BLOCK"), 1);
-		pnes[18] = new ItemStack(Material.getMaterial("EMERALD_BLOCK"), 1);
+		pnes[4] = new ItemStack(Material.COMMAND_BLOCK, 1);
+		pnes[5] = new ItemStack(Material.FILLED_MAP, 1);
+		pnes[6] = new ItemStack(Material.GLASS, 1);
+		pnes[7] = new ItemStack(Material.SOUL_SAND, 1);
+		pnes[8] = new ItemStack(Material.PISTON, 1);
+		pnes[9] = new ItemStack(Material.REDSTONE_BLOCK, 1);
+		pnes[10] = new ItemStack(Material.EMERALD_BLOCK, 1);
+		pnes[11] = new ItemStack(Material.SPAWNER, 1);
+		pnes[12] = new ItemStack(Material.SEA_LANTERN, 1);
+		pnes[13] = new ItemStack(Material.TNT, 1);
+		pnes[14] = new ItemStack(Material.SAND, 1);
+		pnes[15] = new ItemStack(Material.PUMPKIN_SEEDS, 1);
+		pnes[16] = new ItemStack(Material.PISTON, 1);
+		pnes[17] = new ItemStack(Material.REDSTONE_BLOCK, 1);
+		pnes[18] = new ItemStack(Material.EMERALD_BLOCK, 1);
 
 		return pnes;
 

@@ -64,13 +64,21 @@ public class VersionMgr {
 	public static boolean isV1_18() {
 		return Bukkit.getVersion().contains("1.18");
 	}
-	
+
 	public static boolean isV1_19() {
 		return Bukkit.getVersion().contains("1.19");
 	}
-	
+
+	public static boolean isV1_20() {
+		return Bukkit.getVersion().contains("1.20");
+	}
+
+	public static boolean isV1_21() {
+		return Bukkit.getVersion().contains("1.21");
+	}
+
 	public static boolean isV_17Plus() {
-		return isV1_17() || isV1_18() || isV1_19();
+		return isV1_17() || isV1_18() || isV1_19() || isV1_20() || isV1_21();
 	}
 	
 	public static boolean isNewMaterials() {
