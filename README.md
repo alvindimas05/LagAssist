@@ -8,5 +8,5 @@ You can find the original Spigot page [here](https://www.spigotmc.org/resources/
 LagAssist is a plugin that provides tools to be used to analyse, prevent and resolve lag.
 
 ## Credits
-- <b>[Stefatorus](https://github.com/Stefatorus)</b> for the plugin and permission to publish this plugin for free.
+- <b>[Stefatorus](https://github.com/Stefatorus)</b> for the plugin and permission to publish this plugin for free
 - <b>[erxson](https://github.com/erxson)</b> for adding gradle support
