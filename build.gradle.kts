@@ -11,7 +11,7 @@ repositories {
 }
 
 group = "org.alvindimas05.lagassist"
-version = "1.0-SNAPSHOT"
+version = "2.30.1"
 description = "LagAssist"
 
 java {
