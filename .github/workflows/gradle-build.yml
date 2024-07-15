@@ -1,5 +1,11 @@
 name: Publish Jar
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release git tag
+        type: string
+        required: true
   push:
 jobs:
   build:
@@ -25,3 +31,14 @@ jobs:
       with:
         name: artifacts-jar
         path: ./build/libs/*
+    - name: Publish release
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: ./build/libs/*
+        tag: ${{ inputs.tag }}
+        name: LagAssist ${{ inputs.tag }}
+        allowUpdates: true
+        artifactErrorsFailBuild: false
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}

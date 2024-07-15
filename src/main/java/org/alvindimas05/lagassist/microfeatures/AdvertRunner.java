@@ -33,7 +33,7 @@ public class AdvertRunner implements Listener, PluginMessageListener {
 			p.sendPluginMessage(Main.p, "BungeeCord", new byte[1]);
 		} else {
 			// TODO: FINSIH non-lousy advertising
-			sendAdvertising(null, 1);
+			// sendAdvertising(null, 1);
 		}
 
 	}
