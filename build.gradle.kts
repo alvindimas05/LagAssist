@@ -10,8 +10,15 @@ repositories {
     maven("https://repo.maven.apache.org/maven2/")
 }
 
+
+var minecraftVersion = "1.21"
+
+task<Exec>("minecraftVersion") {
+    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21"
+}
+
 group = "org.alvindimas05.lagassist"
-version = "2.30.1"
+version = "2.31-$minecraftVersion"
 description = "LagAssist"
 
 java {
@@ -20,8 +27,9 @@ java {
     }
 }
 
+
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$minecraftVersion-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
     implementation("io.netty:netty-all:4.1.111.Final")

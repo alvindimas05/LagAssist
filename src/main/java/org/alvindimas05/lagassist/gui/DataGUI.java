@@ -189,7 +189,7 @@ public class DataGUI {
 		ItemMeta smeta = s.getItemMeta();
 
 		if (shining) {
-			smeta.addEnchant(Enchantment.UNBREAKING, 1, true);
+			smeta.addEnchant(Enchantment.MENDING, 1, true);
 			smeta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
 		}
 
