@@ -208,7 +208,7 @@ public class CommandListener implements CommandExecutor {
 			s.sendMessage("     ✸ LagAssist TogglePhyisics - Toggles physics events.");
 			s.sendMessage("     ✸ LagAssist ChunkAnalyse - Find the laggiest chunks");
 			s.sendMessage("     ✸ LagAssist GetMap - Get a graph of server TPS");
-			s.sendMessage("     ✸ LagAssist Benchmark - Generates a performance report");
+			s.sendMessage("     ✸ LagAssist Benchmark - Get bencmarked result of your cpu");
 			s.sendMessage("     ✸ LagAssist Ping - Shows a ping benchmark");
 			s.sendMessage("     ✸ LagAssist StatsBar - Get a simple action-bar TPS Meter");
 			s.sendMessage("     ✸ LagAssist TpChunk - Teleport to a chunk");

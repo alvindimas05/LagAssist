@@ -124,11 +124,12 @@ public class Approximate {
 							cs.sendMessage("  §2✸ §fCPU Name: §e" + cpuname);
 							cs.sendMessage("");
 							if (br.getOk()) {
-								cs.sendMessage("  §2✸ §fCPU Score (SINGLE): §e" + br.getStringifiedSth());
-								cs.sendMessage("  §2✸ §fCPU Score (MULTI): §e" + br.getStringifiedMth());
+								cs.sendMessage("  §2✸ §fCPU Score: §e" + br.getStringifiedSth());
+								cs.sendMessage("  §2✸ §fThread Score: §e" + br.getStringifiedTh());
 							} else {
-                                cs.sendMessage("  §eBenchmark feature coming soon!");
-                                // cs.sendMessage("  §cThere was an error getting the full benchmark results.");
+                                // cs.sendMessage("  §eBenchmark feature coming soon!");
+                                cs.sendMessage("  §cThere was an error getting the full benchmark results.");
+                                cs.sendMessage("  §cYour CPU might be unsupported.");
 							}
 							cs.sendMessage("");
 							cs.sendMessage("  §2✸ §fDownload Speed: §e" + MIBDL + " Mib/s  (" + MBDL + "MB/s)");

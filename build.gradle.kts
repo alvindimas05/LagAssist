@@ -32,6 +32,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:$minecraftVersion-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
+    implementation("com.google.code.gson:gson:2.11.0")
     implementation("io.netty:netty-all:4.1.111.Final")
     implementation("org.apache.directory.studio:org.apache.commons.lang:2.6")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")

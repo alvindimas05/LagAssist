@@ -8,42 +8,79 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
 import org.alvindimas05.lagassist.utils.Others;
+
+class BenchmarkData {
+    public List<BenchmarkCPU> data;
+    public static class BenchmarkCPU {
+        public String name;
+        public String cpumark;
+        public String thread;
+    }
+}
 
 public class SpecsGetter {
 
 	private static OperatingSystemMXBean osmx = ManagementFactory.getOperatingSystemMXBean();
 
-	private static String getLinuxCPU() {
+//	private static String getLinuxCPU() {
+//
+//		final String regex = "model name	: (.*\\n)";
+//
+//		File fl = new File("/proc/cpuinfo");
+//		if (!fl.exists()) {
+//			return "unknown";
+//		}
+//		if (!fl.canRead()) {
+//			return "unknown";
+//		}
+//		try {
+//			String stg = Others.readInputStreamAsString(new FileInputStream(fl));
+//
+//			final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+//			final Matcher matcher = pattern.matcher(stg);
+//			matcher.find();
+//
+//			return matcher.group(1).replaceAll("\n", "");
+//
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			return "unknown";
+//		}
+//
+//	}
 
-		final String regex = "model name	: (.*\\n)";
+    private static String formatCPU(String cpuname){
+        return String.join(" ",
+            Arrays.stream(cpuname
+                .replaceAll("\\(R\\)", "")
+                .replaceAll(" CPU", "")
+                .split(" ")).toList().subList(0, 4));
+    }
 
-		File fl = new File("/proc/cpuinfo");
-		if (!fl.exists()) {
-			return "unknown";
-		}
-		if (!fl.canRead()) {
-			return "unknown";
-		}
-		try {
-			String stg = Others.readInputStreamAsString(new FileInputStream(fl));
+    private static String getLinuxCPU(){
+        Runtime rt = Runtime.getRuntime();
+        try {
+            Process proc = rt.exec("lscpu | grep 'Model name' | cut -f 2 -d ':' | awk '{$1=$1}1'");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
-			final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-			final Matcher matcher = pattern.matcher(stg);
-			matcher.find();
-
-			return matcher.group(1).replaceAll("\n", "");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			return "unknown";
-		}
-
-	}
+            return formatCPU(reader.readLine());
+        } catch(IOException e){
+            return "unknown";
+        }
+    }
 
 	private static String getWindowsCPU() {
 		Runtime rt = Runtime.getRuntime();
@@ -52,8 +89,7 @@ public class SpecsGetter {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 			reader.readLine();
 			reader.readLine();
-			return reader.readLine();
-
+            return formatCPU(reader.readLine());
 		} catch (IOException e) {
 			return "unknown";
 		}
@@ -65,8 +101,7 @@ public class SpecsGetter {
 		try {
 			Process proc = rt.exec("sysctl -n machdep.cpu.brand_string");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-			return reader.readLine();
-
+            return formatCPU(reader.readLine());
 		} catch (IOException e) {
 			return "unknown";
 		}
@@ -74,15 +109,12 @@ public class SpecsGetter {
 	}
 
 	public static String getCPU(String OS) {
-		if (OS.equals("windows")) {
-			return getWindowsCPU();
-		} else if (OS.equals("linux")) {
-			return getLinuxCPU();
-		} else if (OS.equals("mac")) {
-			return getMacCPU();
-		} else {
-			return "unknown";
-		}
+        return switch (OS) {
+            case "windows" -> getWindowsCPU();
+            case "linux" -> getLinuxCPU();
+            case "mac" -> getMacCPU();
+            default -> "unknown";
+        };
 	}
 
 	public static String getOS() {
@@ -117,21 +149,42 @@ public class SpecsGetter {
 
 	public static BenchResponse getBenchmark() {
 
-		String cpu = getCPU(getOS());
+		String cpuname = getCPU(getOS());
 
-		if (cpu.equals("unknown")) {
-			return new BenchResponse(-1, -1, false);
+		if (cpuname.equals("unknown")) {
+			return new BenchResponse(-1, -1, -1, false);
 		}
 
-		HTTPClient conn;
 		try {
-			conn = new HTTPClient("https://lagassist.rz.al/benchmark/" + URLEncoder.encode(cpu, "UTF-8"));
+            URL url = new URL("https://github.com/alvindimas05/LagAssist/releases/latest/download/benchmark-data.json");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
 
-			return conn.getBenchmark();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return null;
+            StringBuilder response = new StringBuilder();
+            Scanner scanner = new Scanner(conn.getInputStream());
+            while (scanner.hasNextLine()) {
+                response.append(scanner.nextLine());
+            }
+            scanner.close();
+
+            Gson gson = new Gson();
+            BenchmarkData data = gson.fromJson(response.toString(), BenchmarkData.class);
+
+            BenchmarkData.BenchmarkCPU benchmarkCPU = data.data.stream()
+                .filter(cpu -> cpu.name.contains(cpuname))
+                .toList().getFirst();
+
+            return new BenchResponse(
+                Integer.parseInt(benchmarkCPU.cpumark.replaceAll(",", "")),
+                0,
+                Integer.parseInt(benchmarkCPU.thread.replaceAll(",", "")),
+                true
+            );
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
 
 	}
 
