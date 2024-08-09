@@ -35,51 +35,38 @@ public class SpecsGetter {
 
 	private static OperatingSystemMXBean osmx = ManagementFactory.getOperatingSystemMXBean();
 
-//	private static String getLinuxCPU() {
-//
-//		final String regex = "model name	: (.*\\n)";
-//
-//		File fl = new File("/proc/cpuinfo");
-//		if (!fl.exists()) {
-//			return "unknown";
-//		}
-//		if (!fl.canRead()) {
-//			return "unknown";
-//		}
-//		try {
-//			String stg = Others.readInputStreamAsString(new FileInputStream(fl));
-//
-//			final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-//			final Matcher matcher = pattern.matcher(stg);
-//			matcher.find();
-//
-//			return matcher.group(1).replaceAll("\n", "");
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			return "unknown";
-//		}
-//
-//	}
+	private static String getLinuxCPU() {
+
+		final String regex = "model name	: (.*\\n)";
+
+		File fl = new File("/proc/cpuinfo");
+		if (!fl.exists()) {
+			return "unknown";
+		}
+		if (!fl.canRead()) {
+			return "unknown";
+		}
+		try {
+			String stg = Others.readInputStreamAsString(new FileInputStream(fl));
+
+			final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+			final Matcher matcher = pattern.matcher(stg);
+			matcher.find();
+
+			return formatCPU(matcher.group(1).replaceAll("\n", ""));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        return "unknown";
+	}
 
     private static String formatCPU(String cpuname){
         return String.join(" ",
-            Arrays.stream(cpuname
-                .replaceAll("\\(R\\)", "")
-                .replaceAll(" CPU", "")
-                .split(" ")).toList().subList(0, 4));
-    }
-
-    private static String getLinuxCPU(){
-        Runtime rt = Runtime.getRuntime();
-        try {
-            Process proc = rt.exec("lscpu | grep 'Model name' | cut -f 2 -d ':' | awk '{$1=$1}1'");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-            return formatCPU(reader.readLine());
-        } catch(IOException e){
-            return "unknown";
-        }
+            Arrays.copyOfRange(
+                cpuname.replaceAll("\\(R\\)| CPU", "").split(" "),
+                0, 4
+            )
+        );
     }
 
 	private static String getWindowsCPU() {
@@ -184,7 +171,7 @@ public class SpecsGetter {
 		} catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return new BenchResponse(-1, -1, -1, false);
 
 	}
 

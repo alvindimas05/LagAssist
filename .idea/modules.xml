@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/lagassist.iml" filepath="$PROJECT_DIR$/.idea/modules/lagassist.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/lagassist.main.iml" filepath="$PROJECT_DIR$/.idea/modules/lagassist.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/org.alvindimas05.lagassist.lagassist.main.iml" filepath="$PROJECT_DIR$/.idea/modules/org.alvindimas05.lagassist.lagassist.main.iml" />
     </modules>
