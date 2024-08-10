@@ -11,10 +11,10 @@ repositories {
 }
 
 
-var minecraftVersion = "1.21"
+var minecraftVersion = "1.21.1"
 
 task<Exec>("minecraftVersion") {
-    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21"
+    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
 }
 
 group = "org.alvindimas05.lagassist"
