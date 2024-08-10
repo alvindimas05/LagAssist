@@ -5,12 +5,14 @@ public class BenchResponse {
 	private int singlethread;
 	private int multithread;
     private int thread;
+    private int cores;
 	private boolean ok;
 
-	public BenchResponse(int singlethread, int multithread, int thread, boolean ok) {
+	public BenchResponse(int singlethread, int multithread, int thread, int cores, boolean ok) {
 		this.singlethread = singlethread;
 		this.multithread = multithread;
         this.thread = thread;
+        this.cores = cores;
 		this.ok = ok;
 	}
 
@@ -29,6 +31,10 @@ public class BenchResponse {
 	public int getSinglethread() {
 		return singlethread;
 	}
+
+    public int getCores(){
+        return cores;
+    }
 
 	public String getStringifiedSth() {
 		if (singlethread < 0) {
@@ -50,7 +56,6 @@ public class BenchResponse {
         }
         return String.valueOf(thread);
     }
-
 
     public void setSinglethread(int singlethread) {
 		this.singlethread = singlethread;

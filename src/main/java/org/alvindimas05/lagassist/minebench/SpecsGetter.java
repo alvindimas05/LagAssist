@@ -28,6 +28,7 @@ class BenchmarkData {
         public String name;
         public String cpumark;
         public String thread;
+        public String cores;
     }
 }
 
@@ -53,21 +54,12 @@ public class SpecsGetter {
 			final Matcher matcher = pattern.matcher(stg);
 			matcher.find();
 
-			return formatCPU(matcher.group(1).replaceAll("\n", ""));
+			return matcher.group(1).replaceAll("\n", "");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
         return "unknown";
 	}
-
-    private static String formatCPU(String cpuname){
-        return String.join(" ",
-            Arrays.copyOfRange(
-                cpuname.replaceAll("\\(R\\)| CPU", "").split(" "),
-                0, 4
-            )
-        );
-    }
 
 	private static String getWindowsCPU() {
 		Runtime rt = Runtime.getRuntime();
@@ -76,7 +68,7 @@ public class SpecsGetter {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 			reader.readLine();
 			reader.readLine();
-            return formatCPU(reader.readLine());
+            return reader.readLine();
 		} catch (IOException e) {
 			return "unknown";
 		}
@@ -88,12 +80,21 @@ public class SpecsGetter {
 		try {
 			Process proc = rt.exec("sysctl -n machdep.cpu.brand_string");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            return formatCPU(reader.readLine());
+            return reader.readLine();
 		} catch (IOException e) {
 			return "unknown";
 		}
 
 	}
+
+    private static String formatCPU(String cpuname){
+        return String.join(" ",
+            Arrays.copyOfRange(
+                cpuname.replaceAll("\\(R\\)| CPU", "").split(" "),
+                0, 4
+            )
+        );
+    }
 
 	public static String getCPU(String OS) {
         return switch (OS) {
@@ -136,10 +137,10 @@ public class SpecsGetter {
 
 	public static BenchResponse getBenchmark() {
 
-		String cpuname = getCPU(getOS());
+		String cpuname = formatCPU(getCPU(getOS()));
 
 		if (cpuname.equals("unknown")) {
-			return new BenchResponse(-1, -1, -1, false);
+			return new BenchResponse(-1, -1, -1, -1, false);
 		}
 
 		try {
@@ -166,12 +167,13 @@ public class SpecsGetter {
                 Integer.parseInt(benchmarkCPU.cpumark.replaceAll(",", "")),
                 0,
                 Integer.parseInt(benchmarkCPU.thread.replaceAll(",", "")),
+                Integer.parseInt(benchmarkCPU.cores),
                 true
             );
 		} catch (Exception e) {
             e.printStackTrace();
         }
-        return new BenchResponse(-1, -1, -1, false);
+        return new BenchResponse(-1, -1, -1, -1, false);
 
 	}
 

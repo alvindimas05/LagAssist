@@ -28,9 +28,7 @@ public class StackComparer {
 					return false;
 				}
 
-				if (s1.isSheared() != s2.isSheared()) {
-					return false;
-				}
+                return s1.isSheared() == s2.isSheared();
 			}
 			return true;
 		};

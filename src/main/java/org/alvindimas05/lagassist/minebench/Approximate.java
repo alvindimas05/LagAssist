@@ -91,8 +91,14 @@ public class Approximate {
 
 				String cpuname = SpecsGetter.getCPU(SpecsGetter.getOS());
 
-				String singleapprox = String.valueOf(perthread * 4 / 5) + "-" + String.valueOf(perthread * 6 / 5);
-				String multiapprox = String.valueOf(multithread * 4 / 5) + "-" + String.valueOf(multithread * 6 / 5);
+                int cores = Runtime.getRuntime().availableProcessors();
+
+                double percentage = (double) cores / br.getCores();
+
+				String singleapprox = String.valueOf((int) percentage * (perthread * 4 / 5))
+                    + "-" + String.valueOf((int)percentage * (perthread * 6 / 5));
+				String multiapprox = String.valueOf((int)percentage * (multithread * 4 / 5))
+                    + "-" + String.valueOf((int)percentage * (multithread * 6 / 5));
 
 				int tries = 0;
 
