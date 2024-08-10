@@ -67,6 +67,7 @@ public class Approximate {
 		return max;
 	}
 
+
 	public static void showBenchmark(CommandSender s) {
 		if (!receivers.contains(s)) {
 			receivers.add(s);
@@ -91,14 +92,14 @@ public class Approximate {
 
 				String cpuname = SpecsGetter.getCPU(SpecsGetter.getOS());
 
-                int cores = Runtime.getRuntime().availableProcessors();
+                int cores = SpecsGetter.getCores() / 2;
 
                 double percentage = (double) cores / br.getCores();
 
-				String singleapprox = String.valueOf((int) percentage * (perthread * 4 / 5))
-                    + "-" + String.valueOf((int)percentage * (perthread * 6 / 5));
-				String multiapprox = String.valueOf((int)percentage * (multithread * 4 / 5))
-                    + "-" + String.valueOf((int)percentage * (multithread * 6 / 5));
+				String singleapprox = String.valueOf((int) (percentage * (perthread * 4 / 5)))
+                    + "-" + String.valueOf((int) (percentage * (perthread * 6 / 5)));
+				String multiapprox = String.valueOf((int) (percentage * (multithread * 4 / 5)))
+                    + "-" + String.valueOf((int) (percentage * (multithread * 6 / 5)));
 
 				int tries = 0;
 

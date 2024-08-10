@@ -105,6 +105,58 @@ public class SpecsGetter {
         };
 	}
 
+    public static int getCores() {
+        String OS = getOS();
+        String command = switch (OS) {
+            case "mac" -> "sysctl -n machdep.cpu.core_count";
+            case "linux" -> "lscpu";
+            case "windows" -> "cmd /C WMIC CPU Get /Format:List";
+            default -> "";
+        };
+        Process process = null;
+        int numberOfCores = 0;
+        int sockets = 0;
+        try {
+            if(OS.equals("mac")){
+                String[] cmd = { "/bin/sh", "-c", command};
+                process = Runtime.getRuntime().exec(cmd);
+            }else{
+                process = Runtime.getRuntime().exec(command);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(process.getInputStream()));
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                if(OS.equals("mac")){
+                    numberOfCores = !line.isEmpty() ? Integer.parseInt(line) : 0;
+                }else if (OS.equals("linux")) {
+                    if (line.contains("Core(s) per socket:")) {
+                        numberOfCores = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
+                    }
+                    if(line.contains("Socket(s):")){
+                        sockets = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
+                    }
+                } else if (OS.equals("windows")) {
+                    if (line.contains("NumberOfCores")) {
+                        numberOfCores = Integer.parseInt(line.split("=")[1]);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(OS.equals("linux")){
+            return numberOfCores * sockets;
+        }
+        return numberOfCores;
+    }
+
 	public static String getOS() {
 		String OS = System.getProperty("os.name").toLowerCase();
 		if (OS.contains("linux")) {
