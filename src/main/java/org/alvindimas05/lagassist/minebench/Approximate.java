@@ -92,7 +92,7 @@ public class Approximate {
 
 				String cpuname = SpecsGetter.getCPU(SpecsGetter.getOS());
 
-                int cores = SpecsGetter.getCores() / 2;
+                int cores = SpecsGetter.getCores();
 
                 double percentage = (double) cores / br.getCores();
 
