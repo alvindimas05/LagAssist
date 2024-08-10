@@ -128,11 +128,13 @@ public class Approximate {
 							cs.sendMessage("");
 							cs.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛§f§l BENCHMARK RESULTS §2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
 							cs.sendMessage("");
-							cs.sendMessage("  §2✸ §fCPU Name: §e" + cpuname);
+                            cs.sendMessage("  §2✸ §fCPU Name: §e" + cpuname);
+                            cs.sendMessage("  §2✸ §fTotal Cores: §e" + br.getCores());
+                            cs.sendMessage("  §2✸ §fAvailable Cores: §e" + cores);
 							cs.sendMessage("");
 							if (br.getOk()) {
-								cs.sendMessage("  §2✸ §fCPU Score: §e" + br.getStringifiedSth());
-								cs.sendMessage("  §2✸ §fThread Score: §e" + br.getStringifiedTh());
+								cs.sendMessage("  §2✸ §fCPU Score: §e" + br.getStringifiedSth(true));
+								cs.sendMessage("  §2✸ §fThread Score: §e" + br.getStringifiedTh(true));
 							} else {
                                 // cs.sendMessage("  §eBenchmark feature coming soon!");
                                 cs.sendMessage("  §cThere was an error getting the full benchmark results.");

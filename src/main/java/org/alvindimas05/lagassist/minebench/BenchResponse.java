@@ -14,6 +14,8 @@ public class BenchResponse {
         this.thread = thread;
         this.cores = cores;
 		this.ok = ok;
+
+
 	}
 
 	public boolean getOk() {
@@ -36,10 +38,17 @@ public class BenchResponse {
         return cores;
     }
 
-	public String getStringifiedSth() {
+	public String getStringifiedSth(boolean calculateByCores) {
 		if (singlethread < 0) {
 			return "Unknown Score";
 		}
+
+        if(calculateByCores){
+            return String.valueOf(
+                (int) (((double) SpecsGetter.getCores() / cores) * singlethread)
+            );
+        }
+
 		return String.valueOf(singlethread);
 	}
 
@@ -50,10 +59,18 @@ public class BenchResponse {
 		return String.valueOf(multithread);
 	}
 
-    public String getStringifiedTh() {
+    public String getStringifiedTh(boolean calculateByCores) {
         if (thread < 0) {
             return "Unknown Score";
         }
+
+
+        if(calculateByCores){
+            return String.valueOf(
+                (int) (((double) SpecsGetter.getCores() / cores) * thread)
+            );
+        }
+
         return String.valueOf(thread);
     }
 
