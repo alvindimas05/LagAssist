@@ -15,7 +15,7 @@ I've been using these plugins for my Minecraft Server and they are highly recomm
 and has other optimization features.
 - <b>[ChunkSpawnerLimiter](https://modrinth.com/plugin/chunkspawnerlimiter)</b> this plugin reduces mobs spawn which useful
 to prevent big mob farms instead of using StackMob that usually doesn't optimize that much.
-- <b>[Chunky](https://modrinth.com/plugin/chunky)</b> this plugin pre-generates chunks efficiently to reduce lags</b>
+- <b>[Chunky](https://modrinth.com/plugin/chunky)</b> this plugin pre-generates chunks efficiently to reduce lags.
 
 ## Credits
 - <b>[Stefatorus](https://github.com/Stefatorus)</b> for the plugin and permission to publish this plugin for free
