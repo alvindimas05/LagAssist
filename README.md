@@ -18,5 +18,6 @@ to prevent big mob farms instead of using StackMob that usually doesn't optimize
 - <b>[Chunky](https://modrinth.com/plugin/chunky)</b> this plugin pre-generates chunks efficiently to reduce lags.
 
 ## Credits
-- <b>[Stefatorus](https://github.com/Stefatorus)</b> for the plugin and permission to publish this plugin for free
-- <b>[erxson](https://github.com/erxson)</b> for adding gradle support
+- <b>[Stefatorus](https://github.com/Stefatorus)</b> for the plugin and permission to publish this plugin for free.
+- <b>[Dabaski](https://github.com/Dabaski)</b> for fixing bug and contributing on the code.
+- <b>[erxson](https://github.com/erxson)</b> for adding gradle support.
