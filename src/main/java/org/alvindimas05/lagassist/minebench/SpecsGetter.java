@@ -213,7 +213,7 @@ public class SpecsGetter {
 
             BenchmarkData.BenchmarkCPU benchmarkCPU = data.data.stream()
                 .filter(cpu -> cpu.name.contains(cpuname))
-                .toList().getFirst();
+                .toList().get(0);
 
             return new BenchResponse(
                 Integer.parseInt(benchmarkCPU.cpumark.replaceAll(",", "")),

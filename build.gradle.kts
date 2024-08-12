@@ -12,18 +12,28 @@ repositories {
 
 
 var minecraftVersion = "1.21.1"
+var javaVersion = 21
+var versionName = "1.21.1"
 
-task<Exec>("minecraftVersion") {
+task<Exec>("env") {
     minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
+    javaVersion = (System.getenv("JAVA_VERSION") ?: "21").toInt()
+    versionName = minecraftVersion
+
+    if (minecraftVersion == "legacy"){
+        minecraftVersion = "1.20.3"
+        javaVersion = 17
+        versionName = "legacy"
+    }
 }
 
 group = "org.alvindimas05.lagassist"
-version = "2.31-$minecraftVersion"
+version = "2.31-$versionName"
 description = "LagAssist"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(javaVersion))
     }
 }
 
