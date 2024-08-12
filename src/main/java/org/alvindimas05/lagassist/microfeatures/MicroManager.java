@@ -9,10 +9,13 @@ import java.util.WeakHashMap;
 import org.alvindimas05.lagassist.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,6 +41,7 @@ public class MicroManager implements Listener {
 		Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
 			for (BlockState b : breakables) {
 				b.getBlock().breakNaturally();
+				b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getBlockData());
 			}
 
 			breakables.clear();
@@ -51,7 +55,7 @@ public class MicroManager implements Listener {
 
 	private static List<BlockState> breakables = new ArrayList<>();
 	private static final List<BlockFace> growablefaces = Arrays.asList(BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH,
-			BlockFace.SOUTH);
+			BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP);
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onGrowableGrow(BlockGrowEvent e) {
@@ -73,8 +77,17 @@ public class MicroManager implements Listener {
 
 		for (BlockFace face : growablefaces) {
 			Block piston = b.getBlock().getRelative(face);
+			if(piston.getType() != Material.PISTON) continue;
 
-			if(piston.getType() != Material.PISTON || face.getOppositeFace() != face) continue;
+			//Block frontBlock = piston.getRelative(piston.getFace(b.getBlock()).getOppositeFace());
+			BlockData blockData = piston.getBlockData();
+			if (blockData instanceof Directional directional) {
+				BlockFace facing = directional.getFacing();
+				if (facing != face.getOppositeFace()) {
+					continue;
+				}
+			}
+
 			breakables.add(b);
 
 			return;
