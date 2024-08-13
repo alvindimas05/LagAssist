@@ -26,7 +26,7 @@ public class PacketInjector {
 			PacketInjector.playerConnection = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.level.EntityPlayer" : "{nms}.EntityPlayer").getField(VersionMgr.isV_17Plus() ? "b" : "playerConnection");
 			PacketInjector.networkManager = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.network.PlayerConnection" : "{nms}.PlayerConnection").getField(VersionMgr.isV_17Plus() ? "a" : "networkManager");
 
-			PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField(VersionMgr.isV_17Plus() ? "k" : "channel");
+			PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField(VersionMgr.isV_17Plus() ? "n" : "channel");
 
 			PacketInjector.refreshSessions();
 		} catch (Exception e) {
