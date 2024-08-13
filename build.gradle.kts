@@ -2,7 +2,7 @@ import kotlin.properties.Delegates
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.1"
+//    id("io.papermc.paperweight.userdev") version "1.7.1"
 }
 
 repositories {
@@ -19,7 +19,7 @@ var javaVersion by Delegates.notNull<Int>()
 lateinit var versionName: String
 
 task<Exec>("env") {
-    minecraftVersion = System.getenv("MC_VERSION") ?: "1.20.4"
+    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
     javaVersion = (System.getenv("JAVA_VERSION") ?: "21").toInt()
     versionName = minecraftVersion
 
@@ -40,10 +40,9 @@ java {
     }
 }
 
-paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.REOBF_PRODUCTION
 
 dependencies {
-    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT")
+//    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT")
 
     compileOnly("io.papermc.paper:paper-api:$minecraftVersion-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
