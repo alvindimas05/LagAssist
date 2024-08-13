@@ -17,13 +17,13 @@ public class PacketMain implements Listener {
 	public static void Enabler(boolean reload) {
 		PacketInjector.Enabler();
 		ClientMain.secondaryEnabler(reload);
-		
+
 		if (!reload) {
 			Main.p.getServer().getPluginManager().registerEvents(new PacketMain(), Main.p);
 		}
 		Bukkit.getLogger().info("    §e[§a✔§e] §fInjecting PacketListener.");
 	}
-	
+
 	public static boolean isPacketEnabled() {
 		return ClientMain.enabled || SafetyManager.enabled;
 	}
