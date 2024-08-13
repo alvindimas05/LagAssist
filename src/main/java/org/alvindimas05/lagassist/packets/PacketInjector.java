@@ -23,16 +23,16 @@ public class PacketInjector {
             return;
         }
         try {
-            PacketInjector.playerConnection = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.level.EntityPlayer" : "{nms}.EntityPlayer").getField(VersionMgr.isV_17Plus() ? "b" : "playerConnection");
-            PacketInjector.networkManager = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.network.PlayerConnection" : "{nms}.PlayerConnection").getField(VersionMgr.isV_17Plus() ? "a" : "networkManager");
-
-            PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField(VersionMgr.isV_17Plus() ? "k" : "channel");
-
-            if(VersionMgr.isV_21Plus()){
+            if(VersionMgr.isV_20Plus()){
                 PacketInjector.playerConnection = Reflection.getClass("{nms}.level.EntityPlayer").getField("c");
                 PacketInjector.networkManager = Reflection.getClass("{nms}.network.PlayerConnection").getField("e");
 
                 PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField("n");
+            } else {
+                PacketInjector.playerConnection = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.level.EntityPlayer" : "{nms}.EntityPlayer").getField(VersionMgr.isV_17Plus() ? "b" : "playerConnection");
+                PacketInjector.networkManager = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.network.PlayerConnection" : "{nms}.PlayerConnection").getField(VersionMgr.isV_17Plus() ? "a" : "networkManager");
+
+                PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField(VersionMgr.isV_17Plus() ? "k" : "channel");
             }
 
             PacketInjector.refreshSessions();
