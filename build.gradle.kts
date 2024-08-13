@@ -31,7 +31,7 @@ task<Exec>("env") {
 }
 
 group = "org.alvindimas05.lagassist"
-version = "2.31-$versionName"
+version = "2.32-$versionName"
 description = "LagAssist"
 
 java {
