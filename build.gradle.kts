@@ -1,3 +1,5 @@
+import kotlin.properties.Delegates
+
 plugins {
     id("java")
 }
@@ -11,12 +13,12 @@ repositories {
 }
 
 
-var minecraftVersion = "1.21.1"
-var javaVersion = 21
-var versionName = "1.21.1"
+lateinit var minecraftVersion: String
+var javaVersion by Delegates.notNull<Int>()
+lateinit var versionName: String
 
 task<Exec>("env") {
-    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
+    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21"
     javaVersion = (System.getenv("JAVA_VERSION") ?: "21").toInt()
     versionName = minecraftVersion
 
