@@ -1,11 +1,6 @@
 package org.alvindimas05.lagassist.stacker;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -142,14 +137,14 @@ public class StackChunk {
 			list.add(optional);
 			return optional;
 		}
-		
+
 		for (Entity ent : list) {
 			boolean similar = StackComparer.isSimilar(ent, optional);
 			if (similar) {
 				return ent;
 			}
 		}
-		
+
 		list.add(optional);
 		return optional;
 
@@ -199,7 +194,7 @@ public class StackChunk {
 		ent.setMetadata("lagassist.stacksize", new FixedMetadataValue(Main.p, size));
 		ent.setCustomName(formatted);
 		ent.setCustomNameVisible(Main.config.getBoolean("smart-stacker.gameplay.tag-visibility"));
-	}
+    }
 
 	public static void setDrops(EntityDeathEvent e) {
 		Entity ent = e.getEntity();
@@ -226,9 +221,15 @@ public class StackChunk {
 			}
 		}
 
+        int droppedExp = e.getDroppedExp();
+
+        if(droppedExp < 1){
+            droppedExp = StackExp.getExp(e.getEntity());
+        }
+
 		e.getDrops().clear();
 		e.getDrops().addAll(drops);
-		e.setDroppedExp(e.getDroppedExp() * stack);
+		e.setDroppedExp(droppedExp * stack);
 	}
 
 	public static void runShutdown() {

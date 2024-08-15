@@ -45,16 +45,16 @@ public class StackManager implements Listener {
 		if (!reload) {
 			Main.p.getServer().getPluginManager().registerEvents(new StackManager(), Main.p);
 			Main.p.getServer().getPluginManager().registerEvents(new StackManipulator(), Main.p);
-			
+
 			if (Main.paper) {
 				Main.p.getServer().getPluginManager().registerEvents(new PaperOnly(), Main.p);
 			}
 		}
-		
+
 		StackChunk.runStart();
 		Bukkit.getLogger().info("    §e[§a✔§e] §fSmart Mob Stacker.");
 	}
-	
+
 	public static boolean isStacked(Entity ent) {
 		return StackChunk.getStack(ent) > 1;
 	}
@@ -72,18 +72,18 @@ public class StackManager implements Listener {
 		if (!smartstacker) {
 			return;
 		}
-		
+
 		if (WorldMgr.isBlacklisted(e.getLocation().getWorld())) {
 			return;
 		}
-		
+
 		e.getEntity().setMetadata("lagassist.spawnreason", new FixedMetadataValue(Main.p, e.getSpawnReason()));
 	}
-	
-	
+
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onSpawn(EntitySpawnEvent e) {
-		
+
 		if (e.isCancelled()) {
 			return;
 		}
@@ -91,25 +91,25 @@ public class StackManager implements Listener {
 		if (!smartstacker) {
 			return;
 		}
-		
+
 		if (WorldMgr.isBlacklisted(e.getLocation().getWorld())) {
 			return;
 		}
-		
+
 		if(StackManipulator.isDeadEntity()) {
 			return;
 		}
-		
+
 		Entity ent = e.getEntity();
-		
+
 		if (!Main.config.getBoolean("smart-stacker.checks.spawn-check")) {
 			return;
 		}
-		
+
 //		if (!(ent instanceof LivingEntity)) {
 //			return;
 //		}
-		
+
 		if (StackChunk.tryStacking(ent.getLocation(), ent.getType(), ent)) {
 //			e.setCancelled(true);
 			ent.remove();
@@ -125,14 +125,14 @@ public class StackManager implements Listener {
 		if (!smartstacker) {
 			return;
 		}
-		
+
 		if (!Main.config.getBoolean("smart-stacker.technical.drops-fix")) {
 			return;
 		}
 
 		StackChunk.setDrops(e);
 	}
-	
+
 	private static class PaperOnly implements Listener {
 		// Ugly so it hopefully doesn't break.
 		@EventHandler(priority = EventPriority.HIGH)
@@ -144,11 +144,11 @@ public class StackManager implements Listener {
 			if (!smartstacker) {
 				return;
 			}
-			
+
 			if (WorldMgr.isBlacklisted(e.getLocation().getWorld())) {
 				return;
 			}
-			
+
 			if(StackManipulator.isDeadEntity()) {
 				return;
 			}
@@ -161,7 +161,7 @@ public class StackManager implements Listener {
 				e.setCancelled(true);
 			}
 		}
-		
+
 		@EventHandler(priority = EventPriority.HIGH)
 		public void onAnvil(PrepareAnvilEvent e) {
 			if (!smartstacker) {
@@ -177,20 +177,20 @@ public class StackManager implements Listener {
 			if (!result.hasItemMeta()) {
 				return;
 			}
-			
+
 			ItemMeta imeta = result.getItemMeta();
 
 			if (!imeta.hasDisplayName()) {
 				return;
 			}
-			
+
 			Pattern pat = Pattern.compile(StackChunk.regexpat.replace("{type}", "(.*.)"), Pattern.MULTILINE);
 			Matcher mtch = pat.matcher(imeta.getDisplayName());
-			
+
 			if (!mtch.find()) {
 				return;
 			}
-			
+
 			e.setResult(null);
 		}
 	}
@@ -203,11 +203,11 @@ public class StackManager implements Listener {
 		if (!smartstacker) {
 			return;
 		}
-		
+
 		if (!Main.config.getBoolean("smart-stacker.checks.split-change-check")) {
 			return;
 		}
-		
+
 		if (WorldMgr.isBlacklisted(e.getFrom().getWorld())) {
 			return;
 		}
@@ -218,7 +218,7 @@ public class StackManager implements Listener {
 		if (illegal.contains(etype)) {
 			return;
 		}
-		
+
 		// Not a stackable entity.
 //		if (!(ent instanceof LivingEntity)) {
 //			return;
@@ -239,7 +239,7 @@ public class StackManager implements Listener {
 		if (Main.config.getBoolean("smart-stacker.technical.shutdown-clean")) {
 			return;
 		}
-		
+
 		if (WorldMgr.isBlacklisted(e.getWorld())) {
 			return;
 		}
@@ -248,7 +248,7 @@ public class StackManager implements Listener {
 
 		StackChunk.loadChunk(chk);
 	}
-	
+
 	public void onChunkLoad(ChunkUnloadEvent e) {
 		if (!smartstacker) {
 			return;
@@ -257,37 +257,37 @@ public class StackManager implements Listener {
 		if (WorldMgr.isBlacklisted(e.getWorld())) {
 			return;
 		}
-		
+
 		Chunk chk = e.getChunk();
 
 		StackChunk.unloadChunk(chk);
 	}
-	
+
 	public static boolean isStackable(Entity ent) {
 		if (ent == null) {
 			return false;
 		}
-		
+
 //		if (!(ent instanceof LivingEntity)) {
 //			return false;
 //		}
-		
+
 		if (ent instanceof Player) {
 			return false;
 		}
-		
+
 		if (!Main.config.getStringList("smart-stacker.gameplay.stackable").contains(ent.getType().toString().toUpperCase())) {
 			return false;
 		}
-		
+
 		String spawnreason = ent.hasMetadata("lagassist.spawnreason") ? ent.getMetadata("lagassist.spawnreason").get(0).value().toString().toUpperCase() : "UNKNOWN";
-		
+
 		if(!(Main.config.getStringList("smart-stacker.gameplay.spawn-reasons").contains("ALL") || Main.config.getStringList("smart-stacker.gameplay.spawn-reasons").contains(spawnreason))) {
 			return false;
 		}
-		
+
 		int stacksize = StackChunk.getStack(ent);
-		
+
 		if (stacksize < 0) {
 			return false;
 		}
