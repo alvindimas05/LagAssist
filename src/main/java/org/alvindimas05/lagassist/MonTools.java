@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import org.alvindimas05.lagassist.maps.TpsRender;
 import org.alvindimas05.lagassist.minebench.SpecsGetter;
 import org.alvindimas05.lagassist.packets.ServerPackage;
+import org.alvindimas05.lagassist.utils.VersionMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -38,8 +40,8 @@ import org.json.simple.JSONObject;
 
 public class MonTools implements Listener {
 
-    public static ItemStack mapitem = createMapItem();
-    public static ItemMeta mapitemmeta = mapitem.getItemMeta();
+    public static ItemStack mapitem;
+    public static ItemMeta mapitemmeta;
 
     public static List<UUID> actionmon = new ArrayList<>();
     public static List<UUID> mapusers = new ArrayList<>();
@@ -50,33 +52,64 @@ public class MonTools implements Listener {
     private static int stbshowdl = Main.config.getInt("stats-bar.show-delay");
 
     public static void Enabler(boolean reload) {
+//        if(!VersionMgr.isNewMaterials()) return;
+
         if (!reload) {
             Main.p.getServer().getPluginManager().registerEvents(new MonTools(), Main.p);
         }
 
         Bukkit.getLogger().info("    §e[§a✔§e] §fMapVisualizer.");
-        mapitemmeta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
-        mapitem.setItemMeta(mapitemmeta);
 
-        int mapid = getMapId(mapitem);
+        if (VersionMgr.isNewMaterials()) {
+            mapitem =  createMapItem();
+            mapitemmeta = mapitem.getItemMeta();
 
-        if (mapid != -1) {
-            MapView view = Reflection.getMapView(mapid);
-            if (view != null) {
-                view.getRenderers().clear();
-                view.addRenderer(new TpsRender());
+            mapitemmeta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
+            mapitem.setItemMeta(mapitemmeta);
+
+            int mapid = getMapId(mapitem);
+            if(mapid != -1){
+                MapView view = Reflection.getMapView(mapid);
+                if (view != null) {
+                    view.getRenderers().clear();
+                    view.addRenderer(new TpsRender());
+                }
             }
+        } else {
+            MapView map = Bukkit.createMap(Bukkit.getWorlds().get(0));
+            mapitem = createMapItemLegacy(map);
+            map.getRenderers().clear();
+            map.addRenderer(new TpsRender());
         }
 
         StatsBar();
     }
 
-    private static ItemStack createMapItem() {
-        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
+    private static ItemStack createMapItemLegacy(MapView map) {
+        ItemStack mapItem = new ItemStack(Material.MAP, 1, getMapId(map));
+
         MapMeta meta = (MapMeta) mapItem.getItemMeta();
         meta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
         mapItem.setItemMeta(meta);
         return mapItem;
+    }
+
+    private static ItemStack createMapItem() {
+        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
+
+        MapMeta meta = (MapMeta) mapItem.getItemMeta();
+        meta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
+        mapItem.setItemMeta(meta);
+        return mapItem;
+    }
+
+    private static short getMapId(MapView map){
+        try {
+            return (short) Class.forName("org.bukkit.map.MapView").getMethod("getId").invoke(map);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     private static int getMapId(ItemStack mapItem) {
