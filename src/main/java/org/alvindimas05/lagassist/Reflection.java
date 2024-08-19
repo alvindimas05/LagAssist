@@ -91,7 +91,7 @@ public class Reflection {
 	public static void sendAction(Player player, String s) {
 		if(VersionMgr.isV1_8()){
 			try {
-				Object chat = MonTools.Reflection.getClass("{nmsv}.ChatComponentText")
+				Object chat = Reflection.getClass("{nmsv}.ChatComponentText")
 						.getConstructor(String.class).newInstance(s);
 				Object packet = getClass("{nmsv}.PacketPlayOutChat")
 						.getConstructor(
