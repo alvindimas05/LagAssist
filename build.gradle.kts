@@ -1,4 +1,3 @@
-import kotlin.properties.Delegates
 
 plugins {
     id("java")
@@ -14,29 +13,13 @@ repositories {
 }
 
 
-lateinit var minecraftVersion: String
-var javaVersion by Delegates.notNull<Int>()
-lateinit var versionName: String
-
-task<Exec>("env") {
-    minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
-    javaVersion = 21
-    versionName = minecraftVersion
-
-    if (minecraftVersion == "legacy"){
-        minecraftVersion = "1.20.3"
-        javaVersion = 21
-        versionName = "legacy"
-    }
-}
-
 group = "org.alvindimas05.lagassist"
-version = "2.32-$versionName"
+version = "2.32"
 description = "LagAssist"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -44,7 +27,7 @@ java {
 dependencies {
 //    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT")
 
-    compileOnly("io.papermc.paper:paper-api:$minecraftVersion-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
     implementation("com.google.code.gson:gson:2.11.0")

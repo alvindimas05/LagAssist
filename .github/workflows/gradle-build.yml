@@ -26,16 +26,8 @@ jobs:
         settings-path: ${{ github.workspace }}
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
-
-    - name: Build with Gradle Legacy
-      run: MC_VERSION=legacy ./gradlew build
-    - name: Build with Gradle 1.20.4
-      run: MC_VERSION=1.20.4 ./gradlew build
-    - name: Build with Gradle 1.20.6
-      run: MC_VERSION=1.20.6 ./gradlew build
-    - name: Build with Gradle Latest
+    - name: Build with Gradle
       run: ./gradlew build
-
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
