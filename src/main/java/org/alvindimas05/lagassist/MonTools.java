@@ -58,6 +58,8 @@ public class MonTools implements Listener {
         } else {
             MapView map = Bukkit.createMap(Bukkit.getWorlds().get(0));
             mapitem = createMapItem(map);
+            mapitemmeta = mapitem.getItemMeta();
+
             map.getRenderers().clear();
             map.addRenderer(new TpsRender());
         }
