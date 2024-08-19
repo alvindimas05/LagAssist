@@ -8,7 +8,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import net.kyori.adventure.text.Component;
+//import net.kyori.adventure.text.Component;
 import org.alvindimas05.lagassist.maps.TpsRender;
 import org.alvindimas05.lagassist.minebench.SpecsGetter;
 import org.alvindimas05.lagassist.packets.ServerPackage;
@@ -31,7 +31,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -52,8 +51,6 @@ public class MonTools implements Listener {
     private static int stbshowdl = Main.config.getInt("stats-bar.show-delay");
 
     public static void Enabler(boolean reload) {
-//        if(!VersionMgr.isNewMaterials()) return;
-
         if (!reload) {
             Main.p.getServer().getPluginManager().registerEvents(new MonTools(), Main.p);
         }
@@ -77,7 +74,7 @@ public class MonTools implements Listener {
             }
         } else {
             MapView map = Bukkit.createMap(Bukkit.getWorlds().get(0));
-            mapitem = createMapItemLegacy(map);
+            mapitem = createMapItem(map);
             map.getRenderers().clear();
             map.addRenderer(new TpsRender());
         }
@@ -85,7 +82,8 @@ public class MonTools implements Listener {
         StatsBar();
     }
 
-    private static ItemStack createMapItemLegacy(MapView map) {
+    // For older version (1.13 and below)
+    private static ItemStack createMapItem(MapView map) {
         ItemStack mapItem = new ItemStack(Material.MAP, 1, getMapId(map));
 
         MapMeta meta = (MapMeta) mapItem.getItemMeta();
@@ -103,6 +101,7 @@ public class MonTools implements Listener {
         return mapItem;
     }
 
+    // For older version (1.13 and below)
     private static short getMapId(MapView map){
         try {
             return (short) Class.forName("org.bukkit.map.MapView").getMethod("getId").invoke(map);
@@ -162,7 +161,7 @@ public class MonTools implements Listener {
                         .replaceAll("\\{ENT\\}", ents));
 
                 for (Player p : onlinePlayers) {
-                    Reflection.sendAction(p, message);
+                    org.alvindimas05.lagassist.Reflection.sendAction(p, message);
                 }
             });
         }, stbshowdl, stbshowdl);
@@ -308,11 +307,6 @@ public class MonTools implements Listener {
             Methods.getServer.setMethod(getMethod(Classes.MinecraftServer.getType(), "getServer"));
         }
 
-        public static void sendAction(Player player, String s) {
-            Component message = Component.text(s);
-            player.sendActionBar(message);
-        }
-
         public static MapView getMapView(int i) {
             try {
                 Method getMap = Bukkit.class.getDeclaredMethod("getMap", int.class);
@@ -344,6 +338,7 @@ public class MonTools implements Listener {
         public static Class<?> getClass(String classname) {
             try {
                 String path = classname.replace("{nms}", "net.minecraft.server")
+                    .replace("{nmsv}", "net.minecraft.server." + version)
                     .replace("{nm}", "net.minecraft")
                     .replace("{cb}", "org.bukkit.craftbukkit." + version)
                     .replace("{b}", "org.bukkit");
@@ -537,12 +532,6 @@ public class MonTools implements Listener {
             }
         }
 
-        public static void sendPlayerPacket(Player p, Object packet) throws Exception {
-            Object nmsPlayer = getNmsPlayer(p);
-            Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-            connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
-        }
-
         public static PluginCommand getCommand(String name, Plugin plugin) {
             PluginCommand command = null;
 
@@ -637,15 +626,6 @@ public class MonTools implements Listener {
             }
 
             return false;
-        }
-
-        public static void setViewDistance(World w, int amount) {
-            try {
-                runMethod(w, Methods.setViewDistance.getMethod(), amount);
-                Bukkit.getLogger().info("Successfully set view distance at " + amount + " in world " + w.getName());
-            } catch (Exception e) {
-                Bukkit.getLogger().warning("Exception at setViewDistance (" + w.getName() + ", " + amount + ")");
-            }
         }
     }
 }
