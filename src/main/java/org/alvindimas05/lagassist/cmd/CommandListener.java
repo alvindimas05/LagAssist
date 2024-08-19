@@ -22,7 +22,7 @@ import org.alvindimas05.lagassist.MsrExec;
 import org.alvindimas05.lagassist.chunks.ChunkGenerator;
 import org.alvindimas05.lagassist.minebench.Approximate;
 import org.alvindimas05.lagassist.minebench.SpeedTest;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.alvindimas05.lagassist.updater.SmartUpdater;
 
 public class CommandListener implements CommandExecutor {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import org.alvindimas05.lagassist.gui.ClientGUI;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

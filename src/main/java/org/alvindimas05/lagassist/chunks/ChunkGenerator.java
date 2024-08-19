@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.alvindimas05.lagassist.utils.Chat;
 import org.alvindimas05.lagassist.utils.MathUtils;
 import org.bukkit.Bukkit;

@@ -6,7 +6,7 @@ import java.util.List;
 import org.alvindimas05.lagassist.Main;
 import org.alvindimas05.lagassist.cmd.ClientCmdListener;
 import org.alvindimas05.lagassist.gui.DataGUI;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;

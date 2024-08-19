@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

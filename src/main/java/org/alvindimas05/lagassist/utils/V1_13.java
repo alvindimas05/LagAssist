@@ -13,7 +13,7 @@ import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTables;
 
 import org.alvindimas05.lagassist.Data;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 
 public class V1_13 {
 

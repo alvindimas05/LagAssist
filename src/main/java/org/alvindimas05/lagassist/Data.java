@@ -21,7 +21,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.map.MapView;
 
 import org.alvindimas05.lagassist.hoppers.SellHoppers;
-import org.alvindimas05.lagassist.packets.Reflection;
 
 public class Data {
 

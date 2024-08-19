@@ -29,7 +29,6 @@ import org.alvindimas05.lagassist.metrics.MetricsManager;
 import org.alvindimas05.lagassist.microfeatures.MicroManager;
 import org.alvindimas05.lagassist.packets.PacketInjector;
 import org.alvindimas05.lagassist.packets.PacketMain;
-import org.alvindimas05.lagassist.packets.Reflection;
 import org.alvindimas05.lagassist.safety.SafetyManager;
 import org.alvindimas05.lagassist.stacker.StackManager;
 import org.alvindimas05.lagassist.updater.SmartUpdater;

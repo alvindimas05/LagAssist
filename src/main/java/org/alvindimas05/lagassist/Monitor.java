@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import org.alvindimas05.lagassist.hoppers.ChunkHoppers;
-import org.alvindimas05.lagassist.packets.Reflection;
 
 public class Monitor {
 

@@ -17,7 +17,7 @@ import java.util.UUID;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.packets.Reflection;
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
