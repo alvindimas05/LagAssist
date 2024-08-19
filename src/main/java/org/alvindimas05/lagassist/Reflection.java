@@ -1,9 +1,6 @@
 package org.alvindimas05.lagassist;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +16,14 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.json.simple.JSONObject;
+import org.bukkit.inventory.Inventory;
 
 import org.alvindimas05.lagassist.utils.VersionMgr;
 
@@ -85,6 +84,39 @@ public class Reflection {
 				int.class, int.class);
 		Methods.setViewDistance.mthd = getMethod(Classes.World.getType(), "setViewDistance", int.class);
 		Methods.getServer.mthd = getMethod(Classes.MinecraftServer.getType(), "getServer");
+	}
+
+	public static Inventory getTopInventory(InventoryEvent event) {
+		try {
+			Object view = event.getView();
+			Method m = view.getClass().getMethod("getTopInventory");
+			m.setAccessible(true);
+			return (Inventory) m.invoke(view);
+		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static Inventory getBottomInventory(InventoryEvent event) {
+		try {
+			Object view = event.getView();
+			Method m = view.getClass().getMethod("getBottomInventory");
+			m.setAccessible(true);
+			return (Inventory) m.invoke(view);
+		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String getInventoryViewTitle(InventoryEvent event){
+		try {
+			Object view = event.getView();
+			Method m = view.getClass().getMethod("getTitle");
+			m.setAccessible(true);
+			return (String) m.invoke(view);
+		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@SuppressWarnings("deprecation")

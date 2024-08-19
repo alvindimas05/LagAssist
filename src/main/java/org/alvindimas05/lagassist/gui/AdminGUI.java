@@ -1,5 +1,6 @@
 package org.alvindimas05.lagassist.gui;
 
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -66,7 +67,7 @@ public class AdminGUI implements Listener {
 			return;
 		}
 
-		if (!ChatColor.stripColor(e.getView().getTitle()).equals("LagAssist Tools")) {
+		if (!ChatColor.stripColor(Reflection.getInventoryViewTitle(e)).equals("LagAssist Tools")) {
 			return;
 		}
 

@@ -3,6 +3,7 @@ package org.alvindimas05.lagassist.gui;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -119,7 +120,8 @@ public class ClientGUI implements Listener {
 		}
 
 		
-		if (!(ChatColor.stripColor(e.getView().getTitle())).equals(ChatColor.stripColor(ClientMain.guiname))) {
+		if (!(ChatColor.stripColor(Reflection.getInventoryViewTitle(e)))
+				.equals(ChatColor.stripColor(ClientMain.guiname))) {
 			return;
 		}
 

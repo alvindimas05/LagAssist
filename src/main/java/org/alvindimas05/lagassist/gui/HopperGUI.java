@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -114,8 +115,8 @@ public class HopperGUI implements Listener {
 		
 		Inventory clicked = e.getClickedInventory();
 		
-		Inventory invent = e.getView().getTopInventory();
-		Inventory bottom = e.getView().getBottomInventory();
+		Inventory invent = Reflection.getTopInventory(e);
+		Inventory bottom = Reflection.getBottomInventory(e);
 		
 		// Click outside inv.
 		if (invent == null) {
@@ -126,7 +127,7 @@ public class HopperGUI implements Listener {
 		ItemStack hand = e.getCursor();
 		ItemStack itm = e.getCurrentItem();
 		
-		if (!(e.getView().getTitle()).equals(HopperFilter.guiname)) {
+		if (!(Reflection.getInventoryViewTitle(e)).equals(HopperFilter.guiname)) {
 			return;
 		}
 		
@@ -178,7 +179,7 @@ public class HopperGUI implements Listener {
 			return;
 		}
 		
-		if (!(e.getView().getTitle()).equals(HopperFilter.guiname)) {
+		if (!(Reflection.getInventoryViewTitle(e)).equals(HopperFilter.guiname)) {
 			return;
 		}
 		
