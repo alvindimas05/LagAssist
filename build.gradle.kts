@@ -20,12 +20,12 @@ lateinit var versionName: String
 
 task<Exec>("env") {
     minecraftVersion = System.getenv("MC_VERSION") ?: "1.21.1"
-    javaVersion = (System.getenv("JAVA_VERSION") ?: "21").toInt()
+    javaVersion = 21
     versionName = minecraftVersion
 
     if (minecraftVersion == "legacy"){
         minecraftVersion = "1.20.3"
-        javaVersion = 17
+        javaVersion = 21
         versionName = "legacy"
     }
 }
