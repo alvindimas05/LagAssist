@@ -27,7 +27,7 @@ java {
 dependencies {
 //    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT")
 
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
     implementation("com.google.code.gson:gson:2.11.0")
