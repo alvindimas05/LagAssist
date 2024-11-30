@@ -82,6 +82,7 @@ public class MonTools implements Listener {
 
         MapMeta meta = (MapMeta) mapItem.getItemMeta();
         meta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
+        meta.setMapView(Bukkit.getMap(0));
         mapItem.setItemMeta(meta);
         return mapItem;
     }
