@@ -10,7 +10,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-@SuppressWarnings("deprecation")
 public class VersionMgr {
 
 	public static ItemStack getMap() {
@@ -171,7 +170,7 @@ public class VersionMgr {
 		if (isV1_8()) {
 			return ent.getMaxHealth();
 		} else {
-			return ent.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+			return ent.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
 		}
 	}
 

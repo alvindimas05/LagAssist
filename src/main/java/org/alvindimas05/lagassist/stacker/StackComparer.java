@@ -20,15 +20,13 @@ public class StackComparer {
 
 	public static void Enabler(boolean reload) {
 		EntityComparator sheep = (ent1, ent2) -> {
-			if (ent1 instanceof Sheep && ent2 instanceof Sheep) {
-				Sheep s1 = (Sheep) ent1;
-				Sheep s2 = (Sheep) ent2;
+			if (ent1 instanceof Sheep s1 && ent2 instanceof Sheep s2) {
 
-				if (s1.getColor() != s2.getColor()) {
+                if (s1.getColor() != s2.getColor()) {
 					return false;
 				}
 
-                return s1.isSheared() == s2.isSheared();
+                return !s1.readyToBeSheared() == !s2.readyToBeSheared();
 			}
 			return true;
 		};

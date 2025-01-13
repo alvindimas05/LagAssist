@@ -16,14 +16,16 @@ public enum ServerPackage {
 	public static String getServerVersion() {
 		String name = Bukkit.getServer().getClass().getPackage().getName();
 
-		// CraftBukkit doesn't use server version on the package name after version 1.20.5
+		// CraftBukkit doesn't use server version on the package name after version 1.20.4
 		// So we need to add it manually instead
 		if(!name.contains("v1_")){
 			String version = Bukkit.getBukkitVersion().split("-")[0];
             return switch (version) {
                 case "1.20.5", "1.20.6" -> "v1_20_R4";
+				case "1.21", "1.21.1" -> "v1_21_R1";
+				case "1.21.3" -> "v1_21_R2";
                 // Set default to latest
-                default -> "v1_21_R1";
+                default -> "v1_21_R3";
             };
 		}
 
