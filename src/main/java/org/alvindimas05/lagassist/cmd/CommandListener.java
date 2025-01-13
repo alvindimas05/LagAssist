@@ -48,6 +48,7 @@ public class CommandListener implements CommandExecutor {
 			} else if (args.length <= 2) {
 				String arg = args[0];
 				if (arg.equalsIgnoreCase("mobculler")) {
+					MsrExec.cullMobs(sender);
 				} else if (arg.equalsIgnoreCase("version")) {
 					MsrExec.showVersion(sender);
 				} else if (arg.equalsIgnoreCase("redstoneculler")) {
