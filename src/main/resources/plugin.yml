@@ -1,6 +1,6 @@
 name: LagAssist
 authors: [Stefatorus, EntryRise, alvindimas05]
-version: 2.32.2
+version: 2.32.3
 api-version: 1.13
 description: LagAssist is an advanced anti-lag solution that allows server owners find and remove lag using multiple advanced and efficient methods.
 main: org.alvindimas05.lagassist.Main
