@@ -173,8 +173,12 @@ public class VersionMgr {
 			return ent.getMaxHealth();
 		} else {
 			try {
-				return ent.getAttribute((Attribute) Objects.requireNonNull(Reflection.getMethod(Reflection.Classes.Attribute.getType(),
-					"getAttribute", String.class)).invoke("max_health")).getBaseValue();
+				return Objects.requireNonNull(
+					ent.getAttribute((Attribute) Objects.requireNonNull(
+						Reflection.getMethod(Reflection.Classes.Attribute.getType(),
+								"getAttribute", String.class))
+							.invoke(Reflection.Classes.Attribute, "max_health")))
+					.getBaseValue();
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
