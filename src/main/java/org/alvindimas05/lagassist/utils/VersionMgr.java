@@ -10,6 +10,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Objects;
+
 public class VersionMgr {
 
 	public static ItemStack getMap() {
@@ -170,7 +172,12 @@ public class VersionMgr {
 		if (isV1_8()) {
 			return ent.getMaxHealth();
 		} else {
-			return ent.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+			try {
+				return ent.getAttribute((Attribute) Objects.requireNonNull(Reflection.getMethod(Reflection.Classes.Attribute.getType(),
+					"getAttribute", String.class)).invoke("max_health")).getBaseValue();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
