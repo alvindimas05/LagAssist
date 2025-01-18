@@ -21,6 +21,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 @SuppressWarnings("deprecation")
@@ -57,17 +58,27 @@ public class MicroManager implements Listener {
 	private static final List<BlockFace> growablefaces = Arrays.asList(BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH,
 			BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP);
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onGrowableGrow(BlockGrowEvent e) {
+	public <T> void onGrowableGrow(T e) {
 		if (!Main.config.getBoolean("microfeatures.optimize-growable-farms.enable")) {
 			return;
 		}
 
-		if (e.isCancelled()) {
-			return;
-		}
+		BlockState b = null;
+		if(e instanceof BlockGrowEvent){
+			if (((BlockGrowEvent) e).isCancelled()) {
+				return;
+			}
 
-		BlockState b = e.getNewState();
+			b = ((BlockGrowEvent) e).getNewState();
+		}
+		if(e instanceof BlockSpreadEvent){
+			if (((BlockSpreadEvent) e).isCancelled()) {
+				return;
+			}
+
+			b = ((BlockSpreadEvent) e).getNewState();
+		}
+		assert b != null;
 
 		Material mat = b.getType();
 
@@ -93,6 +104,16 @@ public class MicroManager implements Listener {
 			return;
 		}
 
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBlockGrow(BlockGrowEvent e) {
+		onGrowableGrow(e);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBlockSpread(BlockSpreadEvent e) {
+		onGrowableGrow(e);
 	}
 
 	private static Map<Player, Integer> intervals = new WeakHashMap<>();
