@@ -92,7 +92,8 @@ public class MicroManager implements Listener {
 
 			//Block frontBlock = piston.getRelative(piston.getFace(b.getBlock()).getOppositeFace());
 			BlockData blockData = piston.getBlockData();
-			if (blockData instanceof Directional directional) {
+			if (blockData instanceof Directional) {
+				Directional directional = (Directional) blockData;
 				BlockFace facing = directional.getFacing();
 				if (facing != face.getOppositeFace()) {
 					continue;

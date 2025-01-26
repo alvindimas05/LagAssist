@@ -10,6 +10,7 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://repo.minebench.de/")
     maven("https://repo.maven.apache.org/maven2/")
+    maven("https://repo.stellardrift.ca/")
 }
 
 
@@ -19,14 +20,16 @@ description = "LagAssist"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        // Set default to 8 so it can support up to 1.8
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
 
 dependencies {
-//    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT")
-
+//    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT"
+//    Older paper-api only supports up to 1.16.5
+//    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 

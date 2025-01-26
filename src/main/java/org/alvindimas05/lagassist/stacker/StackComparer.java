@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.alvindimas05.lagassist.Main;
+import org.alvindimas05.lagassist.Reflection;
+import org.alvindimas05.lagassist.utils.VersionMgr;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Entity;
@@ -20,13 +22,21 @@ public class StackComparer {
 
 	public static void Enabler(boolean reload) {
 		EntityComparator sheep = (ent1, ent2) -> {
-			if (ent1 instanceof Sheep s1 && ent2 instanceof Sheep s2) {
+			if (ent1 instanceof Sheep && ent2 instanceof Sheep) {
+				Sheep s1 = (Sheep) ent1;
+				Sheep s2 = (Sheep) ent2;
 
                 if (s1.getColor() != s2.getColor()) {
 					return false;
 				}
 
-                return !s1.readyToBeSheared() == !s2.readyToBeSheared();
+
+				try {
+					if(VersionMgr.isV_21Plus()){
+						return !((boolean) Reflection.runMethod(s1, "readyToBeSheared")) == !((boolean) Reflection.runMethod(s2, "readyToBeSheared"));
+					}
+					return (boolean) Reflection.runMethod(s1, "isSheared") == (boolean) Reflection.runMethod(s2, "isSheared");
+				} catch (Exception ignored) {}
 			}
 			return true;
 		};

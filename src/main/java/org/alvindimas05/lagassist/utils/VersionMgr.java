@@ -86,6 +86,10 @@ public class VersionMgr {
         return isV1_20() || isV1_21();
     }
 
+	public static boolean isV_21Plus() {
+		return isV1_21();
+	}
+
 	public static boolean isNewMaterials() {
 		if (isV1_8()) {
 			return false;

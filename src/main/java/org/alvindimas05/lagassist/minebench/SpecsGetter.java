@@ -97,22 +97,28 @@ public class SpecsGetter {
     }
 
 	public static String getCPU(String OS) {
-        return switch (OS) {
-            case "windows" -> getWindowsCPU();
-            case "linux" -> getLinuxCPU();
-            case "mac" -> getMacCPU();
-            default -> "unknown";
-        };
+        switch (OS) {
+            case "windows": return getWindowsCPU();
+            case "linux": return getLinuxCPU();
+            case "mac": return getMacCPU();
+            default: return "unknown";
+        }
 	}
 
     public static int getCores() {
         String OS = getOS();
-        String command = switch (OS) {
-            case "mac" -> "sysctl -n machdep.cpu.core_count";
-            case "linux" -> "lscpu";
-            case "windows" -> "cmd /C WMIC CPU Get /Format:List";
-            default -> "";
-        };
+        String command = "";
+        switch (OS) {
+            case "mac":
+                command = "sysctl -n machdep.cpu.core_count";
+                break;
+            case "linux":
+                command = "lscpu";
+                break;
+            case "windows":
+                command = "cmd /C WMIC CPU Get /Format:List";
+                break;
+        }
         Process process = null;
         int numberOfCores = 0;
         int sockets = 0;
@@ -213,7 +219,7 @@ public class SpecsGetter {
 
             BenchmarkData.BenchmarkCPU benchmarkCPU = data.data.stream()
                 .filter(cpu -> cpu.name.contains(cpuname))
-                .toList().get(0);
+                .collect(Collectors.toList()).get(0);
 
             return new BenchResponse(
                 Integer.parseInt(benchmarkCPU.cpumark.replaceAll(",", "")),
