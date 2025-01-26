@@ -20,14 +20,17 @@ description = "LagAssist"
 
 java {
     toolchain {
-        // Set default to 8 so it can support up to 1.8
-        languageVersion.set(JavaLanguageVersion.of(8))
+//         Minecraft 1.8.8 - 1.16.5
+//         languageVersion.set(JavaLanguageVersion.of(8))
+//         Minecraft 1.17 - 1.20.2
+//         languageVersion.set(JavaLanguageVersion.of(17))
+//         Minecraft 1.20.3+
+         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 
 dependencies {
-//    paperweight.paperDevBundle("$minecraftVersion-R0.1-SNAPSHOT"
 //    Older paper-api only supports up to 1.16.5
 //    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
