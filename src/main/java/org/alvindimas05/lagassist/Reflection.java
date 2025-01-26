@@ -72,8 +72,10 @@ public class Reflection {
 		Classes.ChunkProviderServer.type = getClass(VersionMgr.isV_17Plus() ? "{nms}.level.ChunkProviderServer" : "{nms}.ChunkProviderServer");
 		Classes.IChatBaseComponent.type = getClass(VersionMgr.isV_17Plus() ? "{nm}.network.chat.IChatBaseComponent" : "{nms}.IChatBaseComponent");
 //		Classes.PacketPlayOutTitle.type = getClass(VersionMgr.isV_17Plus()? "{nm}.network.protocol.game.PacketPlayOutTitle" : "{nms}.PacketPlayOutTitle");
-		Classes.Attribute.type = getClass("{b}.attribute.Attribute");
 
+		if(!VersionMgr.isV1_8()){
+			Classes.Attribute.type = getClass("{b}.attribute.Attribute");
+		}
 		// PUTTING METHODS IN ENUM.
 		Methods.setMapId.mthd = getMethod(Classes.MapMeta.getType(), "setMapId", int.class);
 		Methods.getMapId.mthd = getMethod(Classes.MapMeta.getType(), "getMapId");
