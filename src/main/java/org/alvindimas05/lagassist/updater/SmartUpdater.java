@@ -8,9 +8,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.alvindimas05.lagassist.Main;
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.json.simple.JSONArray;
@@ -19,10 +21,11 @@ import org.json.simple.JSONValue;
 
 public class SmartUpdater {
 
-	private static String updatesurl = "https://api.spiget.org/v2/resources/56399/updates?size=15&sort=-date";
-	private static String versionurl = "https://api.spiget.org/v2/resources/56399/versions?size=15&sort=-releaseDate";
+	private static final String updatesurl = "https://api.spiget.org/v2/resources/56399/updates?size=15&sort=-date";
+	private static final String versionurl = "https://api.spiget.org/v2/resources/56399/versions?size=15&sort=-releaseDate";
 
 	public static UpdateInfo ui = null;
+	private static final Logger log = Bukkit.getLogger();
 
 	public static void Enabler() {
 		if (!Main.config.getBoolean("smart-updater.enabled")) {
@@ -31,56 +34,51 @@ public class SmartUpdater {
 
 		UpdateCondition.Enabler();
 
-		Bukkit.getScheduler().runTaskAsynchronously(Main.p, new Runnable() {
-			@Override
-			public void run() {
-				ui = getNextUpdate();
+		if (ServerType.isFolia()) {
+			Bukkit.getGlobalRegionScheduler().run(Main.p, task -> runUpdater());
+		} else {
+			Bukkit.getScheduler().runTaskAsynchronously(Main.p, SmartUpdater::runUpdater);
+		}
+	}
 
-				if (ui == null) {
-					Bukkit.getLogger().info("§2§lLag§f§lAssist §e» §fYou are up to date with LagAssist.");
-					return;
-				}
+	private static void runUpdater() {
+		ui = getNextUpdate();
 
-				Bukkit.getLogger().info("§2§lLag§f§lAssist §e» §fWe found a newer LagAssist version:");
-				if (ui.isUnsafe()) {
-					Bukkit.getLogger().warning("§2§lLag§f§lAssist §e» §fThis version is considered Unsafe!");
-				}
-				Bukkit.getLogger().info("    §2[§e֍§2] §fVersion: " + ui.getVersion());
-				Bukkit.getLogger().info("    §2[§e֍§2] §fReviews: " + ((int) (ui.getRating() * 100)) / 100f + "§e★");
-				Bukkit.getLogger().info("    §2[§e֍§2] §fDownloads: " + ui.getDownloads());
-				Bukkit.getLogger().info("    §2[§e֍§2] §fFor more info, use §2/lagassist changelog");
+		if (ui == null) {
+			log.info("§2§lLag§f§lAssist §e» §fYou are up to date with LagAssist.");
+			return;
+		}
 
-			}
-		});
-
+		log.info("§2§lLag§f§lAssist §e» §fWe found a newer LagAssist version:");
+		if (ui.isUnsafe()) {
+			log.warning("§2§lLag§f§lAssist §e» §fThis version is considered Unsafe!");
+		}
+		log.info("    §2[§e֍§2] §fVersion: " + ui.getVersion());
+		log.info("    §2[§e֍§2] §fReviews: " + ((int) (ui.getRating() * 100)) / 100f + "§e★");
+		log.info("    §2[§e֍§2] §fDownloads: " + ui.getDownloads());
+		log.info("    §2[§e֍§2] §fFor more info, use §2/lagassist changelog");
 	}
 
 	private static UpdateInfo getNextUpdate() {
 		try {
-
 			URL uurl = new URL(updatesurl);
 			URL vurl = new URL(versionurl);
 
 			JSONArray updateData = getWebData(uurl);
 			JSONArray versionData = getWebData(vurl);
 
-			if (updateData == null) {
-				return null;
-			}
-			if (versionData == null) {
+			if (updateData == null || versionData == null) {
 				return null;
 			}
 
-			Map<Long, UpdateInfo> updates = new HashMap<Long, UpdateInfo>();
-			Map<Long, UpdateInfo> filteredupdates = new HashMap<Long, UpdateInfo>();
+			Map<Long, UpdateInfo> updates = new HashMap<>();
+			Map<Long, UpdateInfo> filteredupdates = new HashMap<>();
 
-			// GET all update posts (update messages, etc) and create a rudimentary
-			// UpdateInfo.
-			for (int i = 0; i < updateData.size(); i++) {
-				JSONObject obj = (JSONObject) updateData.get(i);
+			for (Object updateDatum : updateData) {
+				JSONObject obj = (JSONObject) updateDatum;
 
 				String title = (String) obj.get("title");
-				String description = (java.lang.String) obj.get("description");
+				String description = (String) obj.get("description");
 				long date = (long) obj.get("date");
 				long likes = (long) obj.get("likes");
 
@@ -94,9 +92,8 @@ public class SmartUpdater {
 				updates.put(date, up);
 			}
 
-			// Fill UpdateInfo with reviews and other useful information.
-			for (int i = 0; i < versionData.size(); i++) {
-				JSONObject obj = (JSONObject) versionData.get(i);
+			for (Object versionDatum : versionData) {
+				JSONObject obj = (JSONObject) versionDatum;
 
 				long date = (long) obj.get("releaseDate");
 
@@ -105,9 +102,8 @@ public class SmartUpdater {
 				}
 
 				String version = (String) obj.get("name");
-
 				long downloads = (long) obj.get("downloads");
-				double rating = Double.valueOf(String.valueOf(((JSONObject) obj.get("rating")).get("average")));
+				double rating = Double.parseDouble(String.valueOf(((JSONObject) obj.get("rating")).get("average")));
 				long id = (long) obj.get("id");
 
 				UpdateInfo up = updates.get(date);
@@ -120,7 +116,6 @@ public class SmartUpdater {
 				filteredupdates.put(date, up);
 			}
 
-			// Sort map and do other juicy stuff.
 			LinkedHashMap<Long, UpdateInfo> sorted = filteredupdates.entrySet().stream()
 					.sorted(Collections.reverseOrder(Map.Entry.comparingByKey()))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue,
@@ -136,18 +131,16 @@ public class SmartUpdater {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			Bukkit.getLogger().warning("§e[§a✖§e] §fCouldn't recognize Update data.");
+			log.warning("§e[§a✖§e] §fCouldn't recognize Update data.");
 		}
 		return null;
 	}
 
 	private static JSONArray getWebData(URL u) {
-		InputStream is;
-		try {
-			is = u.openStream();
+		try (InputStream is = u.openStream()) {
 			return (JSONArray) JSONValue.parse(new InputStreamReader(is));
 		} catch (IOException e) {
-			Bukkit.getLogger().warning("§e[§a✖§e] §fCouldn't connect to Update Data.");
+			log.warning("§e[§a✖§e] §fCouldn't connect to Update Data.");
 		}
 		return null;
 	}
@@ -158,7 +151,6 @@ public class SmartUpdater {
 		}
 
 		return ui.getDescription().substring(0, Math.min(ui.getDescription().length(), 1000)).replace('\n', ' ');
-
 	}
 
 	public static void showChangelog(CommandSender s) {
@@ -185,5 +177,4 @@ public class SmartUpdater {
 		s.sendMessage("");
 		s.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
 	}
-
 }

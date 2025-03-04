@@ -4,6 +4,7 @@ import java.util.SplittableRandom;
 
 import org.alvindimas05.lagassist.utils.V1_11;
 import org.alvindimas05.lagassist.utils.WorldMgr;
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,93 +17,95 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class Redstone implements Listener {
 
-	SplittableRandom sr = new SplittableRandom();
+    SplittableRandom sr = new SplittableRandom();
+    public static boolean redstoneculler;
 
-	public static boolean redstoneculler;
+    private static boolean destructives;
+    private static int chance;
+    private static int ticks;
 
-	private static boolean destructives;
-	private static int chance;
-	private static int ticks;
+    private static BukkitTask br;
 
-	private static BukkitTask br;
+    public static void Enabler(boolean reload) {
+        redstoneculler = false;
+        destructives = Main.config.getBoolean("redstone-culler.destructive.enabled");
+        chance = Main.config.getInt("redstone-culler.chance");
+        ticks = Main.config.getInt("redstone-culler.ticks");
 
-	public static void Enabler(boolean reload) {
-		redstoneculler = false;
-		destructives = Main.config.getBoolean("redstone-culler.destructive.enabled");
-		chance = Main.config.getInt("redstone-culler.chance");
-		ticks = Main.config.getInt("redstone-culler.ticks");
+        if (!reload) {
+            Main.p.getServer().getPluginManager().registerEvents(new Redstone(), Main.p);
+        }
 
-		if (!reload) {
-			Main.p.getServer().getPluginManager().registerEvents(new Redstone(), Main.p);
-		}
+        Bukkit.getLogger().info("    §e[§a✔§e] §fRedstone Culler.");
+    }
 
-		Bukkit.getLogger().info("    §e[§a✔§e] §fRedstone Culler.");
-	}
+    public static void CullRedstone() {
+        if (!redstoneculler) {
+            redstoneculler = true;
+            setTimer();
+        } else if (br != null && Bukkit.getScheduler().isCurrentlyRunning(br.getTaskId())) {
+            br.cancel();
+            setTimer();
+        }
+    }
 
-	public static void CullRedstone() {
-		if (!redstoneculler) {
-			redstoneculler = true;
-			setTimer();
-		} else if (Bukkit.getScheduler().isCurrentlyRunning(br.getTaskId())) {
-			br.cancel();
-			setTimer();
-		}
-	}
+    private static void setTimer() {
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().runDelayed(Main.p, task -> {
+                redstoneculler = false;
+                V1_11.observerBreaker();
+            }, ticks);
+        } else {
+            br = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    redstoneculler = false;
+                    V1_11.observerBreaker();
+                }
+            }.runTaskLater(Main.p, ticks);
+        }
+    }
 
-	private static void setTimer() {
-		br = new BukkitRunnable() {
-			@Override
-			public void run() {
-				redstoneculler = false;
-				V1_11.observerBreaker();
-			}
+    @EventHandler
+    public void redstoneCuller(BlockRedstoneEvent e) {
+        if (!redstoneculler) {
+            return;
+        }
+        if (WorldMgr.isBlacklisted(e.getBlock().getWorld())) {
+            return;
+        }
+        e.setNewCurrent(0);
 
-		}.runTaskLater(Main.p, ticks);
-	}
+        if (chance < 0) {
+            return;
+        }
 
-	@EventHandler
-	public void redstoneCuller(BlockRedstoneEvent e) {
-		if (!redstoneculler) {
-			return;
-		}
-		if (WorldMgr.isBlacklisted(e.getBlock().getWorld())) {
-			return;
-		}
-		e.setNewCurrent(0);
+        Block b = e.getBlock();
 
-		if (chance < 0) {
-			return;
-		}
+        if (!Main.config.getStringList("redstone-culler.affected-materials").contains(b.getType().toString().toUpperCase())) {
+            return;
+        }
 
-		Block b = e.getBlock();
-		
-		if (!Main.config.getStringList("redstone-culler.affected-materials").contains(b.getType().toString().toUpperCase())) {
-			return;
-		}
+        int rand = sr.nextInt(100);
+        if (rand > chance) {
+            return;
+        }
 
-		int rand = sr.nextInt(100);
-		if (rand > chance) {
-			return;
-		}
+        b.setType(Material.AIR);
+    }
 
-		b.setType(Material.AIR);
-	}
-
-	@EventHandler
-	public void ObserverCuller(BlockPhysicsEvent e) {
-		if (redstoneculler) {
-			if (WorldMgr.isBlacklisted(e.getBlock().getWorld())) {
-				return;
-			}
-//			if (VersionMgr.isNewMaterials()) {
-				if (destructives) {
-					V1_11.ObserverAdd(e.getBlock());
-				}
-				if (V1_11.isObserver(e.getBlock())) {
-					e.setCancelled(true);
-				}
-//			}
-		}
-	}
-
+    @EventHandler
+    public void ObserverCuller(BlockPhysicsEvent e) {
+        if (redstoneculler) {
+            if (WorldMgr.isBlacklisted(e.getBlock().getWorld())) {
+                return;
+            }
+            if (destructives) {
+                V1_11.ObserverAdd(e.getBlock());
+            }
+            if (V1_11.isObserver(e.getBlock())) {
+                e.setCancelled(true);
+            }
+        }
+    }
 }

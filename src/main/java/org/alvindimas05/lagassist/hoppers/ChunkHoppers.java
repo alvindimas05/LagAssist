@@ -1,15 +1,10 @@
 package org.alvindimas05.lagassist.hoppers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.alvindimas05.lagassist.Data;
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.utils.Cache;
-import org.alvindimas05.lagassist.utils.V1_13;
+import org.alvindimas05.lagassist.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -35,352 +30,347 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import org.alvindimas05.lagassist.utils.Others;
-import org.alvindimas05.lagassist.utils.V1_12;
-import org.alvindimas05.lagassist.utils.VersionMgr;
-
 public class ChunkHoppers implements Listener {
 
-	// The Cachetime represents how often the cache should be removed
-	// and the tiles rechecked.
+    // The Cachetime represents how often the cache should be removed
+    // and the tiles rechecked.
 
-	private static Cache<Chunk, BlockState[]> tilecache = new Cache<Chunk, BlockState[]>(40);
+    private static Cache<Chunk, BlockState[]> tilecache = new Cache<Chunk, BlockState[]>(40);
 
-	public static boolean mobhoppers;
-	private static double multiplier;
-	private static List<String> reasons;
+    public static boolean mobhoppers;
+    private static double multiplier;
+    private static List<String> reasons;
 
-	private static String hoppermode;
-	public static String customname;
+    private static String hoppermode;
+    public static String customname;
 
-	private static Item dropplayer;
+    private static Item dropplayer;
 
-	private class HopperComparator implements Comparator<Hopper> {
+    private class HopperComparator implements Comparator<Hopper> {
 
-		Location initial;
+        Location initial;
 
-		public HopperComparator(Location initial) {
-			this.initial = initial;
-		}
+        public HopperComparator(Location initial) {
+            this.initial = initial;
+        }
 
-		@Override
-		public int compare(Hopper h1, Hopper h2) {
-			return (int) h1.getLocation().distance(initial) - (int) h2.getLocation().distance(initial);
-		}
+        @Override
+        public int compare(Hopper h1, Hopper h2) {
+            return (int) h1.getLocation().distance(initial) - (int) h2.getLocation().distance(initial);
+        }
 
-	}
+    }
 
-	public static void Enabler(boolean reload) {
-		hoppermode = Main.config.getString("hopper-check.chunk-hoppers.mode");
-		mobhoppers = Main.config.getDouble("hopper-check.chunk-hoppers.mob-hopper.maxtps") >= 20;
-		multiplier = Main.config.getDouble("hopper-check.chunk-hoppers.mob-hopper.multiplier");
-		reasons = Main.config.getStringList("hopper-check.chunk-hoppers.mob-hopper.spawn-reasons");
+    public static void Enabler(boolean reload) {
+        hoppermode = Main.config.getString("hopper-check.chunk-hoppers.mode");
+        mobhoppers = Main.config.getDouble("hopper-check.chunk-hoppers.mob-hopper.maxtps") >= 20;
+        multiplier = Main.config.getDouble("hopper-check.chunk-hoppers.mob-hopper.multiplier");
+        reasons = Main.config.getStringList("hopper-check.chunk-hoppers.mob-hopper.spawn-reasons");
 
-		customname = ChatColor.translateAlternateColorCodes('&',
-				Main.config.getString("hopper-check.chunk-hoppers.define"));
+        customname = ChatColor.translateAlternateColorCodes('&',
+                Objects.requireNonNull(Main.config.getString("hopper-check.chunk-hoppers.define")));
 
-		tilecache.clear();
+        tilecache.clear();
 
-		if (!reload) {
-			Main.p.getServer().getPluginManager().registerEvents(new ChunkHoppers(), Main.p);
-			runTask();
-		}
+        if (!reload) {
+            Main.p.getServer().getPluginManager().registerEvents(new ChunkHoppers(), Main.p);
+            runTask();
+        }
 
-		HopperFilter.Enabler(reload);
-		SellHoppers.Enabler(reload);
-	}
+        HopperFilter.Enabler(reload);
+        SellHoppers.Enabler(reload);
+    }
 
-	private static void runTask() {
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.p, new Runnable() {
-			@Override
-			public void run() {
-				tilecache.tick();
-			}
-		}, 1L, 1L);
-	}
+    private static void runTask() {
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().runAtFixedRate(Main.p, task -> tilecache.tick(), 1L, 1L);
+        } else {
+            Bukkit.getScheduler().runTaskTimer(Main.p, () -> tilecache.tick(), 1L, 1L);
+        }
+    }
 
-	public static void giveChunkHopper(Player p, int amount) {
-		Inventory inv = p.getInventory();
-		ItemStack itm = getCustomHopper(amount);
 
-		int empty = inv.firstEmpty();
+    public static void giveChunkHopper(Player p, int amount) {
+        Inventory inv = p.getInventory();
+        ItemStack itm = getCustomHopper(amount);
 
-		if (empty == -1) {
-			p.getLocation().getWorld().dropItem(p.getLocation(), itm);
-			return;
-		}
+        int empty = inv.firstEmpty();
 
-		p.getInventory().addItem(itm);
-	}
+        if (empty == -1) {
+            p.getLocation().getWorld().dropItem(p.getLocation(), itm);
+            return;
+        }
 
-	private static Material getMaterial(EntityType et) {
-		String loc = "hopper-check.chunk-hoppers.mob-hopper.filter-items." + et.toString().toLowerCase();
-		if (!Main.config.contains(loc)) {
-			return null;
-		}
+        p.getInventory().addItem(itm);
+    }
 
-		return Material.valueOf(Main.config.getString(loc));
-	}
+    private static Material getMaterial(EntityType et) {
+        String loc = "hopper-check.chunk-hoppers.mob-hopper.filter-items." + et.toString().toLowerCase();
+        if (!Main.config.contains(loc)) {
+            return null;
+        }
 
-	private List<Hopper> getHoppers(Chunk chk, Material mat) {
-		List<Hopper> hoppers = new ArrayList<Hopper>();
+        return Material.valueOf(Main.config.getString(loc));
+    }
 
-		if (!tilecache.isCached(chk)) {
-			tilecache.putCached(chk, chk.getTileEntities());
-		}
+    private List<Hopper> getHoppers(Chunk chk, Material mat) {
+        List<Hopper> hoppers = new ArrayList<Hopper>();
 
-		for (BlockState b : tilecache.getCached(chk)) {
-			if (!(b instanceof Hopper)) {
-				continue;
-			}
+        if (!tilecache.isCached(chk)) {
+            tilecache.putCached(chk, chk.getTileEntities());
+        }
 
-			Hopper h = (Hopper) b;
+        for (BlockState b : tilecache.getCached(chk)) {
+            if (!(b instanceof Hopper)) {
+                continue;
+            }
 
-			String stg = V1_12.getHopperName(h);
+            Hopper h = (Hopper) b;
 
-			// Check if not default; and if it isn't default; check if the string is null or
-			// it isn't custom and continue.
-			if (!customname.equalsIgnoreCase("DEFAULT") && (stg == null || !stg.equals(customname))) {
-				continue;
-			}
+            String stg = V1_12.getHopperName(h);
 
-			if (!HopperFilter.isAllowed(h.getLocation(), mat)) {
-				continue;
-			}
+            // Check if not default; and if it isn't default; check if the string is null or
+            // it isn't custom and continue.
+            if (!customname.equalsIgnoreCase("DEFAULT") && (stg == null || !stg.equals(customname))) {
+                continue;
+            }
 
-			hoppers.add((Hopper) b);
-		}
+            if (!HopperFilter.isAllowed(h.getLocation(), mat)) {
+                continue;
+            }
 
-		return hoppers;
-	}
+            hoppers.add((Hopper) b);
+        }
 
-	private ItemStack spreadItemInHoppers(List<Hopper> hoppers, ItemStack itm, Location loc) {
-		ItemStack remainder = itm.clone();
-		
-		if (isCustomHopper(remainder)) {
-			return remainder;
-		}
-		
-		
-		if (hoppermode.equalsIgnoreCase("RANDOM")) {
-			Collections.shuffle(hoppers);
-		} else if (hoppermode.equalsIgnoreCase("CLOSEST")) {
-			Collections.sort(hoppers, new HopperComparator(loc));
-		}
+        return hoppers;
+    }
 
-		for (Hopper hopper : hoppers) {
-			Inventory inv = hopper.getInventory();
-			
-			if (SellHoppers.attemptSell(hopper, itm)) {
-				return null;
-			}
+    private ItemStack spreadItemInHoppers(List<Hopper> hoppers, ItemStack itm, Location loc) {
+        ItemStack remainder = itm.clone();
 
-			Map<Integer, ItemStack> remainers = inv.addItem(remainder);
-			
-			
+        if (isCustomHopper(remainder)) {
+            return remainder;
+        }
 
-			if (remainers.size() < 1) {
-				return null;
-			}
 
-			remainder = remainers.get(0);
+        if (hoppermode.equalsIgnoreCase("RANDOM")) {
+            Collections.shuffle(hoppers);
+        } else if (hoppermode.equalsIgnoreCase("CLOSEST")) {
+            Collections.sort(hoppers, new HopperComparator(loc));
+        }
 
-			if (remainder == null) {
-				return null;
-			}
-		}
+        for (Hopper hopper : hoppers) {
+            Inventory inv = hopper.getInventory();
 
-		return remainder;
-	}
-	
-	private static ItemStack chopper;
-	
-	public static boolean isCustomHopper(ItemStack itm) {
-		if (chopper == null) {
-			chopper = getCustomHopper(1);
-		}
-		
-		itm = itm.clone();
-		itm.setAmount(1);
-		
-		return itm.isSimilar(chopper);
-	}
+            if (SellHoppers.attemptSell(hopper, itm)) {
+                return null;
+            }
 
-	public static ItemStack getCustomHopper(int amount) {
-		ItemStack itm = new ItemStack(Material.valueOf("HOPPER"), amount);
-		ItemMeta imeta = itm.getItemMeta();
+            Map<Integer, ItemStack> remainers = inv.addItem(remainder);
 
-		if (!customname.equalsIgnoreCase("DEFAULT")) {
-			imeta.setDisplayName(customname);
-		}
 
-		// Make it work with the unbreakable check.
-		VersionMgr.setUnbreakable(imeta, true);
-		imeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
-		itm.setItemMeta(imeta);
+            if (remainers.size() < 1) {
+                return null;
+            }
 
-		return itm;
-	}
+            remainder = remainers.get(0);
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onPlace(BlockPlaceEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
+            if (remainder == null) {
+                return null;
+            }
+        }
 
-		if (customname.equalsIgnoreCase("DEFAULT")) {
-			return;
-		}
+        return remainder;
+    }
 
-		ItemStack itm = e.getItemInHand();
+    private static ItemStack chopper;
 
-		if (itm == null) {
-			return;
-		}
+    public static boolean isCustomHopper(ItemStack itm) {
+        if (chopper == null) {
+            chopper = getCustomHopper(1);
+        }
 
-		if (!itm.hasItemMeta()) {
-			return;
-		}
+        itm = itm.clone();
+        itm.setAmount(1);
 
-		ItemMeta imeta = itm.getItemMeta();
+        return itm.isSimilar(chopper);
+    }
 
-		if (!imeta.hasDisplayName()) {
-			return;
-		}
+    public static ItemStack getCustomHopper(int amount) {
+        ItemStack itm = new ItemStack(Material.valueOf("HOPPER"), amount);
+        ItemMeta imeta = itm.getItemMeta();
 
-		String name = imeta.getDisplayName();
+        if (!customname.equalsIgnoreCase("DEFAULT")) {
+            imeta.setDisplayName(customname);
+        }
 
-		if (!name.equalsIgnoreCase(customname)) {
-			return;
-		}
+        // Make it work with the unbreakable check.
+        VersionMgr.setUnbreakable(imeta, true);
+        imeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        itm.setItemMeta(imeta);
 
-		if (!VersionMgr.isUnbreakable(imeta)) {
-			e.setCancelled(true);
-			return;
-		}
-		
+        return itm;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlace(BlockPlaceEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
+
+        if (customname.equalsIgnoreCase("DEFAULT")) {
+            return;
+        }
+
+        ItemStack itm = e.getItemInHand();
+
+        if (itm == null) {
+            return;
+        }
+
+        if (!itm.hasItemMeta()) {
+            return;
+        }
+
+        ItemMeta imeta = itm.getItemMeta();
+
+        if (!imeta.hasDisplayName()) {
+            return;
+        }
+
+        String name = imeta.getDisplayName();
+
+        if (!name.equalsIgnoreCase(customname)) {
+            return;
+        }
+
+        if (!VersionMgr.isUnbreakable(imeta)) {
+            e.setCancelled(true);
+            return;
+        }
+
 //		System.out.println("SET OWNER");
-		// Set owner
-		Data.setOwningPlayer(e.getBlockPlaced().getLocation(), e.getPlayer());
-		tilecache.remove(e.getBlockPlaced().getChunk());
-	}
+        // Set owner
+        Data.setOwningPlayer(e.getBlockPlaced().getLocation(), e.getPlayer());
+        tilecache.remove(e.getBlockPlaced().getChunk());
+    }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onBreak(BlockBreakEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBreak(BlockBreakEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
 
-		if (customname.equalsIgnoreCase("DEFAULT")) {
-			return;
-		}
+        if (customname.equalsIgnoreCase("DEFAULT")) {
+            return;
+        }
 
-		Block b = e.getBlock();
-		BlockState bstate = b.getState();
+        Block b = e.getBlock();
+        BlockState bstate = b.getState();
 
-		if (!(bstate instanceof Hopper)) {
-			return;
-		}
+        if (!(bstate instanceof Hopper)) {
+            return;
+        }
 
-		Hopper h = (Hopper) bstate;
+        Hopper h = (Hopper) bstate;
 
-		String stg = V1_12.getHopperName(h);
+        String stg = V1_12.getHopperName(h);
 
-		if (stg == null) {
-			return;
-		}
+        if (stg == null) {
+            return;
+        }
 
-		if (!stg.equals(customname)) {
-			return;
-		}
+        if (!stg.equals(customname)) {
+            return;
+        }
 
-		Data.deleteHopper(h);
-		b.setType(Material.AIR);
+        Data.deleteHopper(h);
+        b.setType(Material.AIR);
 //		dropplayer = b.getWorld().dropItemNaturally(b.getLocation(), getCustomHopper(1));
-		dropplayer = Others.giveOrDrop(e.getPlayer(), getCustomHopper(1));
+        dropplayer = Others.giveOrDrop(e.getPlayer(), getCustomHopper(1));
 //		e.getPlayer().getInventory().addItem(getCustomHopper(1));
-		tilecache.remove(b.getChunk());
-		
-	}
+        tilecache.remove(b.getChunk());
 
-	@EventHandler
-	public void playerDrop(PlayerDropItemEvent e) {
+    }
 
-		if (e.isCancelled()) {
-			return;
-		}
+    @EventHandler
+    public void playerDrop(PlayerDropItemEvent e) {
 
-		dropplayer = e.getItemDrop();
-	}
+        if (e.isCancelled()) {
+            return;
+        }
 
-	@EventHandler
-	public void onItemDrop(ItemSpawnEvent e) {
+        dropplayer = e.getItemDrop();
+    }
 
-		if (e.isCancelled()) {
-			return;
-		}
+    @EventHandler
+    public void onItemDrop(ItemSpawnEvent e) {
 
-		Item itm = e.getEntity();
+        if (e.isCancelled()) {
+            return;
+        }
 
-		ItemStack its = itm.getItemStack();
-		Material mat = its.getType();
+        Item itm = e.getEntity();
 
-		if (itm.equals(dropplayer)) {
-			return;
-		}
+        ItemStack its = itm.getItemStack();
+        Material mat = its.getType();
 
-		Chunk chk = itm.getLocation().getChunk();
+        if (itm.equals(dropplayer)) {
+            return;
+        }
 
-		List<Hopper> hoppers = getHoppers(chk, mat);
+        Chunk chk = itm.getLocation().getChunk();
 
-		if (hoppers.size() < 1) {
-			return;
-		}
+        List<Hopper> hoppers = getHoppers(chk, mat);
 
-		ItemStack remainder = spreadItemInHoppers(hoppers, itm.getItemStack(), itm.getLocation());
-		if (remainder == null) {
-			e.setCancelled(true);
-			return;
-		}
+        if (hoppers.size() < 1) {
+            return;
+        }
 
-		itm.setItemStack(remainder);
+        ItemStack remainder = spreadItemInHoppers(hoppers, itm.getItemStack(), itm.getLocation());
+        if (remainder == null) {
+            e.setCancelled(true);
+            return;
+        }
 
-	}
+        itm.setItemStack(remainder);
 
-	@EventHandler
-	public void onCreatureSpawn(CreatureSpawnEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
+    }
 
-		if (!reasons.contains(e.getSpawnReason().toString())) {
-			return;
-		}
+    @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
 
-		if (!mobhoppers) {
-			return;
-		}
+        if (!reasons.contains(e.getSpawnReason().toString())) {
+            return;
+        }
 
-		LivingEntity ent = e.getEntity();
+        if (!mobhoppers) {
+            return;
+        }
 
-		Material mat = getMaterial(ent.getType());
+        LivingEntity ent = e.getEntity();
 
-		if (mat == null) {
-			return;
-		}
+        Material mat = getMaterial(ent.getType());
 
-		Chunk chk = ent.getLocation().getChunk();
+        if (mat == null) {
+            return;
+        }
 
-		List<Hopper> hoppers = getHoppers(chk, mat);
+        Chunk chk = ent.getLocation().getChunk();
 
-		for (ItemStack itm : V1_13.getLootTable(ent)) {
-			ItemStack buffed = itm.clone();
-			buffed.setAmount((int) (itm.getAmount() * multiplier));
-			spreadItemInHoppers(hoppers, buffed, ent.getLocation());
-		}
+        List<Hopper> hoppers = getHoppers(chk, mat);
 
-		e.setCancelled(true);
+        for (ItemStack itm : V1_13.getLootTable(ent)) {
+            ItemStack buffed = itm.clone();
+            buffed.setAmount((int) (itm.getAmount() * multiplier));
+            spreadItemInHoppers(hoppers, buffed, ent.getLocation());
+        }
 
-		// TODO: FINISH CHECK
-	}
+        e.setCancelled(true);
+
+        // TODO: FINISH CHECK
+    }
 }
