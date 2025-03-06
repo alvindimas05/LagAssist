@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.alvindimas05.lagassist.mobs.SmartMob;
 import org.alvindimas05.lagassist.mobs.SpawnerMgr;
 import org.alvindimas05.lagassist.hoppers.ChunkHoppers;
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,7 +25,7 @@ public class Monitor {
     public static int mondelay;
 
     public static void Enabler(boolean reload) {
-        Bukkit.getLogger().info("    §e[§a✔§e] §fLag Monitor.");
+        CustomLogger.info("    §e[§a✔§e] §fLag Monitor.");
 
         for (byte[] row : colors) {
             Arrays.fill(row, (byte) 34);

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.alvindimas05.lagassist.maps.TpsRender;
 import org.alvindimas05.lagassist.minebench.SpecsGetter;
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.ServerType;
 import org.alvindimas05.lagassist.utils.VersionMgr;
 import org.bukkit.Bukkit;
@@ -41,7 +42,7 @@ public class MonTools implements Listener {
             Main.p.getServer().getPluginManager().registerEvents(new MonTools(), Main.p);
         }
 
-        Bukkit.getLogger().info("    §e[§a✔§e] §fMapVisualizer.");
+        CustomLogger.info("    §e[§a✔§e] §fMapVisualizer.");
         initializeMap();
         StatsBar();
     }
@@ -53,7 +54,7 @@ public class MonTools implements Listener {
         mapitemmeta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
         mapitem.setItemMeta(mapitemmeta);
 
-        MapView mapView = Bukkit.createMap(Bukkit.getWorlds().get(0));
+        MapView mapView = Bukkit.createMap(Bukkit.getWorlds().getFirst());
         mapView.getRenderers().clear();
         mapView.addRenderer(new TpsRender());
 

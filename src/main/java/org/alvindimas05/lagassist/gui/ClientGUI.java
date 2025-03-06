@@ -19,137 +19,134 @@ import org.alvindimas05.lagassist.client.ClientMain;
 
 public class ClientGUI implements Listener {
 
-	private static Map<String, Inventory> invs = new HashMap<String, Inventory>();
+    private static final Map<String, Inventory> invs = new HashMap<String, Inventory>();
 
-	public static Inventory getInventory(Player p) {
-		return getInventory(p.getName());
-	}
+    public static Inventory getInventory(Player p) {
+        return getInventory(p.getName());
+    }
 
-	public static boolean existsAlready(Player p) {
-		return existsAlready(p.getName());
-	}
+    public static boolean existsAlready(Player p) {
+        return existsAlready(p.getName());
+    }
 
-	public static boolean existsAlready(String name) {
+    public static boolean existsAlready(String name) {
 
-		return invs.containsKey(name);
-	}
+        return invs.containsKey(name);
+    }
 
-	public static Inventory getInventory(String name) {
-		if (existsAlready(name)) {
-			return invs.get(name);
-		} else {
-			return createInventory(name);
-		}
-	}
+    public static Inventory getInventory(String name) {
+        if (existsAlready(name)) {
+            return invs.get(name);
+        } else {
+            return createInventory(name);
+        }
+    }
 
-	private static Inventory createInventory(String name) {
-		Inventory inv = Bukkit.createInventory(null, 54, ClientMain.guiname);
+    private static Inventory createInventory(String name) {
+        Inventory inv = Bukkit.createInventory(null, 54, ClientMain.guiname);
 
-		DataGUI.setBorders(inv);
-		setToggles(inv);
+        DataGUI.setBorders(inv);
+        setToggles(inv);
 
-		invs.put(name, inv);
+        invs.put(name, inv);
 
-		return inv;
-	}
+        return inv;
+    }
 
-	private static void setToggles(Inventory inv) {
-		boolean[] def = ClientMain.defaults;
+    private static void setToggles(Inventory inv) {
+        boolean[] def = ClientMain.defaults;
 
-		inv.setItem(ToggleState.TNT.nr, DataGUI.tnt);
-		inv.setItem(ToggleState.SAND.nr, DataGUI.sand);
-		inv.setItem(ToggleState.PARTICLES.nr, DataGUI.particle);
-		inv.setItem(ToggleState.PISTONS.nr, DataGUI.piston);
+        inv.setItem(ToggleState.TNT.nr, DataGUI.tnt);
+        inv.setItem(ToggleState.SAND.nr, DataGUI.sand);
+        inv.setItem(ToggleState.PARTICLES.nr, DataGUI.particle);
+        inv.setItem(ToggleState.PISTONS.nr, DataGUI.piston);
 
-		inv.setItem(ToggleState.TNT.nr + 9, DataGUI.getToggler(def[0]));
-		inv.setItem(ToggleState.SAND.nr + 9, DataGUI.getToggler(def[1]));
-		inv.setItem(ToggleState.PARTICLES.nr + 9, DataGUI.getToggler(def[2]));
-		inv.setItem(ToggleState.PISTONS.nr + 9, DataGUI.getToggler(def[3]));
-	}
+        inv.setItem(ToggleState.TNT.nr + 9, DataGUI.getToggler(def[0]));
+        inv.setItem(ToggleState.SAND.nr + 9, DataGUI.getToggler(def[1]));
+        inv.setItem(ToggleState.PARTICLES.nr + 9, DataGUI.getToggler(def[2]));
+        inv.setItem(ToggleState.PISTONS.nr + 9, DataGUI.getToggler(def[3]));
+    }
 
-	private static boolean getDefault(ToggleState t) {
-		boolean[] def = ClientMain.defaults;
-		if (t == ToggleState.TNT) {
-			return def[0];
-		}
-		if (t == ToggleState.SAND) {
-			return def[1];
-		}
-		if (t == ToggleState.PARTICLES) {
-			return def[2];
-		}
-		if (t == ToggleState.PISTONS) {
-			return def[3];
-		}
-		return false;
-	}
+    private static boolean getDefault(ToggleState t) {
+        boolean[] def = ClientMain.defaults;
+        if (t == ToggleState.TNT) {
+            return def[0];
+        }
+        if (t == ToggleState.SAND) {
+            return def[1];
+        }
+        if (t == ToggleState.PARTICLES) {
+            return def[2];
+        }
+        if (t == ToggleState.PISTONS) {
+            return def[3];
+        }
+        return false;
+    }
 
-	public static void show(Player p) {
-		p.openInventory(getInventory(p));
-	}
+    public static void show(Player p) {
+        p.openInventory(getInventory(p));
+    }
 
-	public static boolean isOn(ToggleState t, Player p) {
-		if (!existsAlready(p)) {
-			return getDefault(t);
-		}
-		Inventory inv = getInventory(p);
-		ItemStack s = inv.getItem(t.getNr() + 9);
+    public static boolean isOn(ToggleState t, Player p) {
+        if (!existsAlready(p)) {
+            return getDefault(t);
+        }
+        Inventory inv = getInventory(p);
+        ItemStack s = inv.getItem(t.getNr() + 9);
 
-		if (s.equals(DataGUI.toggleoff)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+        assert s != null;
+        return s.equals(DataGUI.toggleoff);
+    }
 
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent e) {
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
 
-		HumanEntity hm = e.getWhoClicked();
+        HumanEntity hm = e.getWhoClicked();
 
-		if (!(hm instanceof Player)) {
-			return;
-		}
+        if (!(hm instanceof Player)) {
+            return;
+        }
 
-		Inventory invent = e.getInventory();
+        Inventory invent = e.getInventory();
 
-		ItemStack itm = e.getCurrentItem();
+        ItemStack itm = e.getCurrentItem();
 
-		if (itm == null) {
-			return;
-		}
+        if (itm == null) {
+            return;
+        }
 
-		
-		if (!(ChatColor.stripColor(Reflection.getInventoryViewTitle(e)))
-				.equals(ChatColor.stripColor(ClientMain.guiname))) {
-			return;
-		}
 
-		e.setCancelled(true);
+        if (!(ChatColor.stripColor(Reflection.getInventoryViewTitle(e)))
+                .equals(ChatColor.stripColor(ClientMain.guiname))) {
+            return;
+        }
 
-		Material i = itm.getType();
-		int slot = e.getSlot();
+        e.setCancelled(true);
 
-		if (i == DataGUI.toggleon.getType()) {
-			invent.setItem(slot, DataGUI.toggleoff);
-		} else if (i == DataGUI.toggleoff.getType()) {
-			invent.setItem(slot, DataGUI.toggleon);
-		}
-	}
+        Material i = itm.getType();
+        int slot = e.getSlot();
 
-	public enum ToggleState {
+        if (i == DataGUI.toggleon.getType()) {
+            invent.setItem(slot, DataGUI.toggleoff);
+        } else if (i == DataGUI.toggleoff.getType()) {
+            invent.setItem(slot, DataGUI.toggleon);
+        }
+    }
 
-		TNT(20), SAND(21), PARTICLES(23), PISTONS(24);
+    public enum ToggleState {
 
-		private final int nr;
+        TNT(20), SAND(21), PARTICLES(23), PISTONS(24);
 
-		private ToggleState(int nr) {
-			this.nr = nr;
-		}
+        private final int nr;
 
-		public int getNr() {
-			return nr;
-		}
-	}
+        ToggleState(int nr) {
+            this.nr = nr;
+        }
+
+        public int getNr() {
+            return nr;
+        }
+    }
 
 }

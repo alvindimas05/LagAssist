@@ -10,56 +10,56 @@ import java.util.List;
 
 public class MathUtils {
 
-	public static int toMegaByte(long bytes) {
-		return (int) (bytes / 1048576);
-	}
+    public static int toMegaByte(long bytes) {
+        return (int) (bytes / 1048576);
+    }
 
-	public static boolean isInt(String str) {
-		try {
-			int d = Integer.parseInt(str);
-			d = d + 1;
-		} catch (NumberFormatException nfe) {
-			return false;
-		}
-		return true;
-	}
-	
-	public static byte[] integersToBytes(List<Integer> values, int length) {
+    public static boolean isInt(String str) {
+        try {
+            int d = Integer.parseInt(str);
+            d = d + 1;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		DataOutputStream wrt = new DataOutputStream(baos);
+    public static byte[] integersToBytes(List<Integer> values, int length) {
 
-		try {
-			for (int i : values) {
-				wrt.writeInt(i);
-			}
-			wrt.flush();
-			wrt.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream wrt = new DataOutputStream(baos);
 
-		byte[] good = new byte[length];
+        try {
+            for (int i : values) {
+                wrt.writeInt(i);
+            }
+            wrt.flush();
+            wrt.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-		System.arraycopy(baos.toByteArray(), 0, good, 0, length);
+        byte[] good = new byte[length];
 
-		return good;
-	}
+        System.arraycopy(baos.toByteArray(), 0, good, 0, length);
 
-	public static int[] bytesToIntegers(byte[] raw) {
+        return good;
+    }
 
-		int rst = raw.length % 4;
-		byte[] bts = new byte[raw.length + 4 - rst];
+    public static int[] bytesToIntegers(byte[] raw) {
 
-		System.arraycopy(raw, 0, bts, 0, raw.length);
+        int rst = raw.length % 4;
+        byte[] bts = new byte[raw.length + 4 - rst];
 
-		IntBuffer intBuf = ByteBuffer.wrap(bts).order(ByteOrder.BIG_ENDIAN).asIntBuffer();
-		int[] pixels = new int[intBuf.remaining()];
-		intBuf.get(pixels);
-		
-		return pixels;
+        System.arraycopy(raw, 0, bts, 0, raw.length);
 
-	}
+        IntBuffer intBuf = ByteBuffer.wrap(bts).order(ByteOrder.BIG_ENDIAN).asIntBuffer();
+        int[] pixels = new int[intBuf.remaining()];
+        intBuf.get(pixels);
+
+        return pixels;
+
+    }
 
 
 }

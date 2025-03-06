@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -25,13 +26,13 @@ import org.bukkit.event.block.NotePlayEvent;
 public class Physics implements Listener {
 
 	public static boolean denyphysics = false;
-	private static Set<String> mats = new HashSet<String>(Arrays.asList("REDSTONE_WIRE", "NOTE_BLOCK", "PISTON", "PISTON_HEAD", "DIODE", "REPEATER", "COMPARATOR", "REDSTONE_COMPARATOR", "REDSTONE_COMPARATOR_ON", "REDSTONE_COMPARATOR_OFF"));
+	private static final Set<String> mats = new HashSet<String>(Arrays.asList("REDSTONE_WIRE", "NOTE_BLOCK", "PISTON", "PISTON_HEAD", "DIODE", "REPEATER", "COMPARATOR", "REDSTONE_COMPARATOR", "REDSTONE_COMPARATOR_ON", "REDSTONE_COMPARATOR_OFF"));
 
 	public static void Enabler(boolean reload) {
 		if (!reload) {
 			Main.p.getServer().getPluginManager().registerEvents(new Physics(), Main.p);
 		}
-		Bukkit.getLogger().info("    §e[§a✔§e] §fPhysics-Tweaker.");
+		CustomLogger.info("    §e[§a✔§e] §fPhysics-Tweaker.");
 		denyphysics = Main.config.getBoolean("deny-physics.enabled");
 		
 	}

@@ -1,10 +1,7 @@
 package org.alvindimas05.lagassist;
 
 import java.lang.reflect.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.alvindimas05.lagassist.packets.ServerPackage;
 import org.bukkit.Bukkit;
@@ -32,114 +29,114 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class Reflection {
 
-	private static Map<Class<?>, Field[]> cached = new HashMap<Class<?>, Field[]>();
-	private static String version = ServerPackage.getServerVersion();
+    private static final Map<Class<?>, Field[]> cached = new HashMap<Class<?>, Field[]>();
+    private static final String version = ServerPackage.getServerVersion();
 
-	public static enum Classes {
+    public static enum Classes {
 
-		CraftWorld(), CraftBlock(), CraftPlayer(), Material(), MapMeta(), WorldServer(), ChunkProviderServer(),
-		PacketPlayOutTitle(), IChatBaseComponent(), World(), MinecraftServer(), Attribute();
+        CraftWorld(), CraftBlock(), CraftPlayer(), Material(), MapMeta(), WorldServer(), ChunkProviderServer(),
+        PacketPlayOutTitle(), IChatBaseComponent(), World(), MinecraftServer(), Attribute();
 
-		private Class<?> type;
+        private Class<?> type;
 
-		public Class<?> getType() {
-			return type;
-		}
-	}
+        public Class<?> getType() {
+            return type;
+        }
+    }
 
-	public static enum Methods {
+    public static enum Methods {
 
-		setMapId(), getMapId(), getPlayerHandle(), getBlockType(), getChunkProviderServer(), chunkExists(),
-		getIChatBaseComponent(), setViewDistance(), getServer();
+        setMapId(), getMapId(), getPlayerHandle(), getBlockType(), getChunkProviderServer(), chunkExists(),
+        getIChatBaseComponent(), setViewDistance(), getServer();
 
-		private Method mthd;
+        private Method mthd;
 
-		public Method getMethod() {
-			return mthd;
-		}
-	}
+        public Method getMethod() {
+            return mthd;
+        }
+    }
 
-	public static void Enabler() {
-		// PUTTING CLASSES IN ENUM.
-		Classes.CraftWorld.type = getClass("{cb}.CraftWorld");
-		Classes.World.type = getClass("{b}.World");
-		Classes.CraftBlock.type = getClass("{cb}.block.CraftBlock");
-		Classes.CraftPlayer.type = getClass("{cb}.entity.CraftPlayer");
-		Classes.Material.type = getClass("{b}.Material");
-		Classes.MapMeta.type = getClass("{b}.inventory.meta.MapMeta");
-		Classes.WorldServer.type = getClass(VersionMgr.isV_17Plus() ? "{nms}.level.WorldServer" : "{nms}.WorldServer");
-		Classes.MinecraftServer.type = getClass("{nms}.MinecraftServer");
-		Classes.ChunkProviderServer.type = getClass(VersionMgr.isV_17Plus() ? "{nms}.level.ChunkProviderServer" : "{nms}.ChunkProviderServer");
-		Classes.IChatBaseComponent.type = getClass(VersionMgr.isV_17Plus() ? "{nm}.network.chat.IChatBaseComponent" : "{nms}.IChatBaseComponent");
+    public static void Enabler() {
+        // PUTTING CLASSES IN ENUM.
+        Classes.CraftWorld.type = getClass("{cb}.CraftWorld");
+        Classes.World.type = getClass("{b}.World");
+        Classes.CraftBlock.type = getClass("{cb}.block.CraftBlock");
+        Classes.CraftPlayer.type = getClass("{cb}.entity.CraftPlayer");
+        Classes.Material.type = getClass("{b}.Material");
+        Classes.MapMeta.type = getClass("{b}.inventory.meta.MapMeta");
+        Classes.WorldServer.type = getClass(VersionMgr.isV_17Plus() ? "{nms}.level.WorldServer" : "{nms}.WorldServer");
+        Classes.MinecraftServer.type = getClass("{nms}.MinecraftServer");
+        Classes.ChunkProviderServer.type = getClass(VersionMgr.isV_17Plus() ? "{nms}.level.ChunkProviderServer" : "{nms}.ChunkProviderServer");
+        Classes.IChatBaseComponent.type = getClass(VersionMgr.isV_17Plus() ? "{nm}.network.chat.IChatBaseComponent" : "{nms}.IChatBaseComponent");
 //		Classes.PacketPlayOutTitle.type = getClass(VersionMgr.isV_17Plus()? "{nm}.network.protocol.game.PacketPlayOutTitle" : "{nms}.PacketPlayOutTitle");
 
-		if(!VersionMgr.isV1_8()){
-			Classes.Attribute.type = getClass("{b}.attribute.Attribute");
-		}
-		// PUTTING METHODS IN ENUM.
-		Methods.setMapId.mthd = getMethod(Classes.MapMeta.getType(), "setMapId", int.class);
-		Methods.getMapId.mthd = getMethod(Classes.MapMeta.getType(), "getMapId");
-		Methods.getPlayerHandle.mthd = getMethod(Classes.CraftPlayer.getType(), "getHandle");
-		Methods.getBlockType.mthd = getMethod(Classes.CraftBlock.getType(), "getType");
-		Methods.getChunkProviderServer.mthd = getMethod(Classes.WorldServer.getType(), "getChunkProviderServer");
-		Methods.getIChatBaseComponent.mthd = getMethod(Classes.IChatBaseComponent.getType(), "a", String.class);
-		Methods.chunkExists.mthd = getMethod(Classes.ChunkProviderServer.getType(), VersionMgr.ChunkExistsName(),
-				int.class, int.class);
-		Methods.setViewDistance.mthd = getMethod(Classes.World.getType(), "setViewDistance", int.class);
-		Methods.getServer.mthd = getMethod(Classes.MinecraftServer.getType(), "getServer");
-	}
+        if (!VersionMgr.isV1_8()) {
+            Classes.Attribute.type = getClass("{b}.attribute.Attribute");
+        }
+        // PUTTING METHODS IN ENUM.
+        Methods.setMapId.mthd = getMethod(Classes.MapMeta.getType(), "setMapId", int.class);
+        Methods.getMapId.mthd = getMethod(Classes.MapMeta.getType(), "getMapId");
+        Methods.getPlayerHandle.mthd = getMethod(Classes.CraftPlayer.getType(), "getHandle");
+        Methods.getBlockType.mthd = getMethod(Classes.CraftBlock.getType(), "getType");
+        Methods.getChunkProviderServer.mthd = getMethod(Classes.WorldServer.getType(), "getChunkProviderServer");
+        Methods.getIChatBaseComponent.mthd = getMethod(Classes.IChatBaseComponent.getType(), "a", String.class);
+        Methods.chunkExists.mthd = getMethod(Classes.ChunkProviderServer.getType(), VersionMgr.ChunkExistsName(),
+                int.class, int.class);
+        Methods.setViewDistance.mthd = getMethod(Classes.World.getType(), "setViewDistance", int.class);
+        Methods.getServer.mthd = getMethod(Classes.MinecraftServer.getType(), "getServer");
+    }
 
-	public static Inventory getTopInventory(InventoryEvent event) {
-		try {
-			Object view = event.getView();
-			Method m = view.getClass().getMethod("getTopInventory");
-			m.setAccessible(true);
-			return (Inventory) m.invoke(view);
-		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static Inventory getTopInventory(InventoryEvent event) {
+        try {
+            Object view = event.getView();
+            Method m = view.getClass().getMethod("getTopInventory");
+            m.setAccessible(true);
+            return (Inventory) m.invoke(view);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public static Inventory getBottomInventory(InventoryEvent event) {
-		try {
-			Object view = event.getView();
-			Method m = view.getClass().getMethod("getBottomInventory");
-			m.setAccessible(true);
-			return (Inventory) m.invoke(view);
-		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static Inventory getBottomInventory(InventoryEvent event) {
+        try {
+            Object view = event.getView();
+            Method m = view.getClass().getMethod("getBottomInventory");
+            m.setAccessible(true);
+            return (Inventory) m.invoke(view);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public static String getInventoryViewTitle(InventoryEvent event){
-		try {
-			Object view = event.getView();
-			Method m = view.getClass().getMethod("getTitle");
-			m.setAccessible(true);
-			return (String) m.invoke(view);
-		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static String getInventoryViewTitle(InventoryEvent event) {
+        try {
+            Object view = event.getView();
+            Method m = view.getClass().getMethod("getTitle");
+            m.setAccessible(true);
+            return (String) m.invoke(view);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@SuppressWarnings("deprecation")
-	public static void sendAction(Player player, String s) {
-		if(VersionMgr.isV1_8()){
-			try {
-				Object chat = Reflection.getClass("{nmsv}.ChatComponentText")
-						.getConstructor(String.class).newInstance(s);
-				Object packet = getClass("{nmsv}.PacketPlayOutChat")
-						.getConstructor(
-								getClass("{nmsv}.IChatBaseComponent"), byte.class
-						).newInstance(chat, (byte) 2);
-				sendPlayerPacket(player, packet);
-			} catch (Exception e){
-				e.printStackTrace();
-			}
-		} else {
-			player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(s).create());
-		}
-	}
+    @SuppressWarnings("deprecation")
+    public static void sendAction(Player player, String s) {
+        if (VersionMgr.isV1_8()) {
+            try {
+                Object chat = Reflection.getClass("{nmsv}.ChatComponentText")
+                        .getConstructor(String.class).newInstance(s);
+                Object packet = getClass("{nmsv}.PacketPlayOutChat")
+                        .getConstructor(
+                                getClass("{nmsv}.IChatBaseComponent"), byte.class
+                        ).newInstance(chat, (byte) 2);
+                sendPlayerPacket(player, packet);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(s).create());
+        }
+    }
 
 //	public void sendTitle(Player p, int fadein, int stay, int fadeout, String title, String subtitle) {
 //		try {
@@ -169,212 +166,212 @@ public class Reflection {
 //		}
 //	}
 
-	public static MapView getMapView(int i) {
-		Class<?> buk = Bukkit.class;
+    public static MapView getMapView(int i) {
+        Class<?> buk = Bukkit.class;
 
-		try {
-			Method getMap = buk.getDeclaredMethod("getMap", VersionMgr.isNewMaterials() ? int.class : short.class);
-			return (MapView) (VersionMgr.isNewMaterials() ? getMap.invoke(null, i) : getMap.invoke(null, (short) i));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+        try {
+            Method getMap = buk.getDeclaredMethod("getMap", VersionMgr.isNewMaterials() ? int.class : short.class);
+            return (MapView) (VersionMgr.isNewMaterials() ? getMap.invoke(null, i) : getMap.invoke(null, (short) i));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
 
-	}
-	
-	private static Object minecraftserver = null;
-	public static double getTPS(int number) {
-		
-		try {
-		if (minecraftserver == null) {
-			minecraftserver = Methods.getServer.mthd.invoke(null);
-		}
-		
-		Field f = Reflection.getField(Classes.MinecraftServer.type, "recentTps");
-		f.setAccessible(true);
-		
-		return ((double[])f.get(minecraftserver))[number];
-		} catch(Exception e) {
-			e.printStackTrace();
-			return -1;
-		}
-	}
+    }
 
-	public static int getId(MapView view) {
-		if (view == null) {
-			return 0;
-		}
+    private static Object minecraftserver = null;
 
-		Class<?> mv = MapView.class;
+    public static double getTPS(int number) {
 
-		try {
-			Method getMap = mv.getDeclaredMethod("getId");
-			Object obj = getMap.invoke(view);
-			if (obj instanceof Short) {
-				return (short) obj;
-			} else if (obj instanceof Integer) {
-				return (int) obj;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
-	}
+        try {
+            if (minecraftserver == null) {
+                minecraftserver = Methods.getServer.mthd.invoke(null);
+            }
 
-	@SuppressWarnings("unchecked")
-	static JSONObject convert(String text) {
-		JSONObject json = new JSONObject();
-		json.put("text", text);
-		return json;
-	}
+            Field f = Reflection.getField(Classes.MinecraftServer.type, "recentTps");
+            f.setAccessible(true);
 
-	public static Class<?> getClass(String classname) {
-		try {
-			
-			String path = classname.replace("{nms}", "net.minecraft.server" + (VersionMgr.isV_17Plus() ? "" : "." + version))
-					.replace("{nmsv}", "net.minecraft.server." + version)
-					.replace("{nm}", "net.minecraft" + (VersionMgr.isV_17Plus() ? "" : "." + version))
-					.replace("{cb}", "org.bukkit.craftbukkit." + version)
-					.replace("{b}", "org.bukkit");
-			return Class.forName(path);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+            return ((double[]) f.get(minecraftserver))[number];
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 
-	public static Object getCraftWorld(World w) {
-		Class<?> crwclass = Classes.CraftWorld.getType();
-		System.out.println(crwclass.getName());
-		Object craftworld = crwclass.cast(w);
-		return craftworld;
-	}
+    public static int getId(MapView view) {
+        if (view == null) {
+            return 0;
+        }
 
-	public static Object getWorldServer(Object craftWorld) {
-		try {
-			return getFieldValue(craftWorld, "world");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+        Class<?> mv = MapView.class;
 
-	public static Object getChunkProvider(Object worldServer) {
-		try {
-			return runMethod(worldServer, Methods.getChunkProviderServer.getMethod());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+        try {
+            Method getMap = mv.getDeclaredMethod("getId");
+            Object obj = getMap.invoke(view);
+            if (obj instanceof Short) {
+                return (short) obj;
+            } else if (obj instanceof Integer) {
+                return (int) obj;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
-	public static boolean isChunkExistent(Object chunkProvider, int x, int z) {
-		try {
-			return (boolean) runMethod(chunkProvider, Methods.chunkExists.getMethod(), x, z);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		// NOTE: ASSUMING TRUE IN ORDER TO IGNORE IF EXCEPTION POPS UP.
-		return true;
-	}
+    @SuppressWarnings("unchecked")
+    static JSONObject convert(String text) {
+        JSONObject json = new JSONObject();
+        json.put("text", text);
+        return json;
+    }
 
-	public static boolean isTile(Block b) {
-		return !b.getState().getClass().getSimpleName().toLowerCase().contains("craftblockstate");
-	}
+    public static Class<?> getClass(String classname) {
+        try {
 
-	public static Entity getEntity(Location l) {
-		try {
+            String path = classname.replace("{nms}", "net.minecraft.server" + (VersionMgr.isV_17Plus() ? "" : "." + version))
+                    .replace("{nmsv}", "net.minecraft.server." + version)
+                    .replace("{nm}", "net.minecraft" + (VersionMgr.isV_17Plus() ? "" : "." + version))
+                    .replace("{cb}", "org.bukkit.craftbukkit." + version)
+                    .replace("{b}", "org.bukkit");
+            return Class.forName(path);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-			Collection<Entity> ents = l.getWorld().getNearbyEntities(l, 1, 1, 1);
-			for (Entity ent : ents) {
-				return ent;
-			}
-		} catch (Exception e) {
-			return null;
-		}
-		return null;
-	}
+    public static Object getCraftWorld(World w) {
+        Class<?> crwclass = Classes.CraftWorld.getType();
+        System.out.println(crwclass.getName());
+        return crwclass.cast(w);
+    }
 
-	public static void setmapId(ItemStack s, int id) {
-		MapMeta mapm = (MapMeta) s.getItemMeta();
-		try {
-			runMethod(mapm, Methods.setMapId.getMethod(), id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		s.setItemMeta(mapm);
-	}
+    public static Object getWorldServer(Object craftWorld) {
+        try {
+            return getFieldValue(craftWorld, "world");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	public static int getMapId(ItemStack s) {
-		MapMeta mapm = (MapMeta) s.getItemMeta();
-		try {
-			return (int) runMethod(mapm, Methods.getMapId.getMethod());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
-	}
+    public static Object getChunkProvider(Object worldServer) {
+        try {
+            return runMethod(worldServer, Methods.getChunkProviderServer.getMethod());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	public static Object getNmsPlayer(Player p) {
-		if (p == null) {
-			return null;
-		}
-		Method getHandle;
-		try {
-			getHandle = p.getClass().getMethod("getHandle");
-			return getHandle.invoke(p);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+    public static boolean isChunkExistent(Object chunkProvider, int x, int z) {
+        try {
+            return (boolean) runMethod(chunkProvider, Methods.chunkExists.getMethod(), x, z);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // NOTE: ASSUMING TRUE IN ORDER TO IGNORE IF EXCEPTION POPS UP.
+        return true;
+    }
 
-	public static Object getNmsScoreboard(Scoreboard s) throws Exception {
-		Method getHandle = s.getClass().getMethod("getHandle");
-		return getHandle.invoke(s);
-	}
+    public static boolean isTile(Block b) {
+        return !b.getState().getClass().getSimpleName().toLowerCase().contains("craftblockstate");
+    }
 
-	public static String getObjectSerialized(Object obj) {
-		YamlConfiguration conf = new YamlConfiguration();
-		Class<?> cls = obj.getClass();
-		String loc = cls.getSimpleName();
+    public static Entity getEntity(Location l) {
+        try {
 
-		createObjectSerialized(conf, loc, obj, 0);
+            Collection<Entity> ents = l.getWorld().getNearbyEntities(l, 1, 1, 1);
+            for (Entity ent : ents) {
+                return ent;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
+    }
 
-		return conf.saveToString();
-	}
+    public static void setmapId(ItemStack s, int id) {
+        MapMeta mapm = (MapMeta) s.getItemMeta();
+        try {
+            runMethod(mapm, Methods.setMapId.getMethod(), id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        s.setItemMeta(mapm);
+    }
 
-	public static void createObjectSerialized(YamlConfiguration conf, String loc, Object obj, int recursiveness) {
+    public static int getMapId(ItemStack s) {
+        MapMeta mapm = (MapMeta) s.getItemMeta();
+        try {
+            return (int) runMethod(mapm, Methods.getMapId.getMethod());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
-		Class<?> cls = obj.getClass();
+    public static Object getNmsPlayer(Player p) {
+        if (p == null) {
+            return null;
+        }
+        Method getHandle;
+        try {
+            getHandle = p.getClass().getMethod("getHandle");
+            return getHandle.invoke(p);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-		if (!cached.containsKey(cls)) {
-			cached.put(cls, cls.getDeclaredFields());
-		}
+    public static Object getNmsScoreboard(Scoreboard s) throws Exception {
+        Method getHandle = s.getClass().getMethod("getHandle");
+        return getHandle.invoke(s);
+    }
 
-		for (Field fl : cached.get(cls)) {
-			fl.setAccessible(true);
+    public static String getObjectSerialized(Object obj) {
+        YamlConfiguration conf = new YamlConfiguration();
+        Class<?> cls = obj.getClass();
+        String loc = cls.getSimpleName();
 
-			Object newobj = getFieldValue(fl, obj);
+        createObjectSerialized(conf, loc, obj, 0);
 
-			if (newobj == null) {
-				continue;
-			}
+        return conf.saveToString();
+    }
 
-			String name = fl.getName();
-			String type = newobj.getClass().getSimpleName();
+    public static void createObjectSerialized(YamlConfiguration conf, String loc, Object obj, int recursiveness) {
 
-			String newloc = loc + "." + type + "." + name;
+        Class<?> cls = obj.getClass();
 
-			if (isSimple(newobj) || recursiveness > 1) {
-				conf.set(newloc, convertToString(newobj));
-				continue;
-			}
+        if (!cached.containsKey(cls)) {
+            cached.put(cls, cls.getDeclaredFields());
+        }
 
-			createObjectSerialized(conf, newloc, newobj, recursiveness + 1);
+        for (Field fl : cached.get(cls)) {
+            fl.setAccessible(true);
 
-		}
-	}
+            Object newobj = getFieldValue(fl, obj);
+
+            if (newobj == null) {
+                continue;
+            }
+
+            String name = fl.getName();
+            String type = newobj.getClass().getSimpleName();
+
+            String newloc = loc + "." + type + "." + name;
+
+            if (isSimple(newobj) || recursiveness > 1) {
+                conf.set(newloc, convertToString(newobj));
+                continue;
+            }
+
+            createObjectSerialized(conf, newloc, newobj, recursiveness + 1);
+
+        }
+    }
 
 //	public static long getObjectSize(Object obj, int recursiveness) {
 //		if (obj == null) {
@@ -418,193 +415,190 @@ public class Reflection {
 //		}
 //	}
 
-	public static Object getFieldValue(Object instance, String fieldName) throws Exception {
-		Field field = instance.getClass().getDeclaredField(fieldName);
-		field.setAccessible(true);
-		return field.get(instance);
-	}
+    public static Object getFieldValue(Object instance, String fieldName) throws Exception {
+        Field field = instance.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(instance);
+    }
 
-	@SuppressWarnings("unchecked")
-	public static <T> T getFieldValue(Field field, Object obj) {
-		try {
-			return (T) field.get(obj);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+    @SuppressWarnings("unchecked")
+    public static <T> T getFieldValue(Field field, Object obj) {
+        try {
+            return (T) field.get(obj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-	public static Field getField(Class<?> clazz, String fieldName) throws Exception {
-		Field field = clazz.getDeclaredField(fieldName);
-		field.setAccessible(true);
-		return field;
-	}
+    public static Field getField(Class<?> clazz, String fieldName) throws Exception {
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field;
+    }
 
-	public static Method getMethod(Class<?> clazz, String methodName, Class<?>... resl) {
-		Method method;
-		try {
-			method = clazz.getDeclaredMethod(methodName, resl);
-			method.setAccessible(true);
-			return method;
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>... resl) {
+        Method method;
+        try {
+            method = clazz.getDeclaredMethod(methodName, resl);
+            method.setAccessible(true);
+            return method;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	public static Object runMethod(Object obj, Method m, Object... resl) throws Exception {
-		return m.invoke(obj, resl);
-	}
+    public static Object runMethod(Object obj, Method m, Object... resl) throws Exception {
+        return m.invoke(obj, resl);
+    }
 
-	public static Object runMethod(Object obj, String name, Object... resl) throws Exception {
-		Class<?>[] classes = new Class<?>[resl.length];
-		for (int i = 0; i < resl.length; i++) {
-			classes[i] = resl[i].getClass();
-		}
-		return getMethod(obj.getClass(), name, classes).invoke(obj, resl);
-	}
+    public static Object runMethod(Object obj, String name, Object... resl) throws Exception {
+        Class<?>[] classes = new Class<?>[resl.length];
+        for (int i = 0; i < resl.length; i++) {
+            classes[i] = resl[i].getClass();
+        }
+        return Objects.requireNonNull(getMethod(obj.getClass(), name, classes)).invoke(obj, resl);
+    }
 
-	public static void setValue(Object instance, String field, Object value) {
-		try {
-			Field f = instance.getClass().getDeclaredField(field);
-			f.setAccessible(true);
-			f.set(instance, value);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+    public static void setValue(Object instance, String field, Object value) {
+        try {
+            Field f = instance.getClass().getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(instance, value);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
-	public static void sendAllPacket(Object packet) throws Exception {
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			Object nmsPlayer = getNmsPlayer(p);
-			Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-			connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
-		}
-	}
+    public static void sendAllPacket(Object packet) throws Exception {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            Object nmsPlayer = getNmsPlayer(p);
+            Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
+            connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
+        }
+    }
 
-	public static int getPing(Player p) {
-		try {
-			Object entityPlayer = Methods.getPlayerHandle.getMethod().invoke(p);
-			return (int) getFieldValue(entityPlayer, "ping");
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    public static int getPing(Player p) {
+        try {
+            Object entityPlayer = Methods.getPlayerHandle.getMethod().invoke(p);
+            return (int) getFieldValue(entityPlayer, "ping");
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
-	public static void sendListPacket(List<String> players, Object packet) {
-		try {
-			for (String name : players) {
-				Object nmsPlayer = getNmsPlayer(Bukkit.getPlayer(name));
-				Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-				connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public static void sendListPacket(List<String> players, Object packet) {
+        try {
+            for (String name : players) {
+                Object nmsPlayer = getNmsPlayer(Bukkit.getPlayer(name));
+                assert nmsPlayer != null;
+                Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
+                connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	public static void sendPlayerPacket(Player p, Object packet) throws Exception {
-		Object nmsPlayer = getNmsPlayer(p);
-		Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-		if(VersionMgr.isV1_8()){
-			connection.getClass().getMethod("sendPacket", getClass("{nmsv}.Packet")).invoke(connection, packet);
-		} else {
-			connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
-		}
-	}
+    public static void sendPlayerPacket(Player p, Object packet) throws Exception {
+        Object nmsPlayer = getNmsPlayer(p);
+        Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
+        if (VersionMgr.isV1_8()) {
+            connection.getClass().getMethod("sendPacket", getClass("{nmsv}.Packet")).invoke(connection, packet);
+        } else {
+            connection.getClass().getMethod("sendPacket", getClass("{nms}.Packet")).invoke(connection, packet);
+        }
+    }
 
-	public static PluginCommand getCommand(String name, Plugin plugin) {
-		PluginCommand command = null;
+    public static PluginCommand getCommand(String name, Plugin plugin) {
+        PluginCommand command = null;
 
-		try {
-			Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-			c.setAccessible(true);
+        try {
+            Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+            c.setAccessible(true);
 
-			command = c.newInstance(name, plugin);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+            command = c.newInstance(name, plugin);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		return command;
-	}
+        return command;
+    }
 
-	public static CommandMap getCommandMap() {
-		return Bukkit.getCommandMap();
-	}
+    public static CommandMap getCommandMap() {
+        return Bukkit.getCommandMap();
+    }
 
-	private static String convertToString(Object obj) {
-		Class<?> cls = obj.getClass();
+    private static String convertToString(Object obj) {
+        Class<?> cls = obj.getClass();
 
-		if (cls.isArray()) {
-			String stg = "";
-			int length = Array.getLength(obj);
-			for (int i = 0; i < length; i++) {
-				stg += convertToString(Array.get(obj, i));
-			}
-			return stg;
+        if (cls.isArray()) {
+            StringBuilder stg = new StringBuilder();
+            int length = Array.getLength(obj);
+            for (int i = 0; i < length; i++) {
+                stg.append(convertToString(Array.get(obj, i)));
+            }
+            return stg.toString();
 
-		}
+        }
 
-		return obj.toString();
-	}
+        return obj.toString();
+    }
 
-	private static boolean isSimple(Object obj) {
-		Class<?> cls = obj.getClass();
+    private static boolean isSimple(Object obj) {
+        Class<?> cls = obj.getClass();
 
-		if (cls.isPrimitive()) {
-			return true;
-		}
+        if (cls.isPrimitive()) {
+            return true;
+        }
 
-		if (cls.isEnum()) {
-			return true;
-		}
+        if (cls.isEnum()) {
+            return true;
+        }
 
-		if (cls == Integer.class) {
-			return true;
-		}
+        if (cls == Integer.class) {
+            return true;
+        }
 
-		if (cls == Boolean.class) {
-			return true;
-		}
+        if (cls == Boolean.class) {
+            return true;
+        }
 
-		if (cls == String.class) {
-			return true;
-		}
+        if (cls == String.class) {
+            return true;
+        }
 
-		if (cls == Character.class) {
-			return true;
-		}
+        if (cls == Character.class) {
+            return true;
+        }
 
-		if (cls == Byte.class) {
-			return true;
-		}
+        if (cls == Byte.class) {
+            return true;
+        }
 
-		if (cls == Short.class) {
-			return true;
-		}
+        if (cls == Short.class) {
+            return true;
+        }
 
-		if (cls == Float.class) {
-			return true;
-		}
+        if (cls == Float.class) {
+            return true;
+        }
 
-		if (cls == Double.class) {
-			return true;
-		}
+        if (cls == Double.class) {
+            return true;
+        }
 
-		if (cls == Long.class) {
-			return true;
-		}
+        return cls == Long.class;
+    }
 
-		return false;
-	}
+    public static void setViewDistance(World w, int amount) {
+        try {
+            runMethod(w, Methods.setViewDistance.mthd, amount);
+            Main.sendDebug("Succesfully set view distance at " + amount + " in world " + w.getName(), 1);
+        } catch (Exception e) {
+            Main.sendDebug("Exception at setViewDistance (" + w.getName() + ", " + amount + ")", 1);
+        }
 
-	public static void setViewDistance(World w, int amount) {
-		try {
-			runMethod(w, Methods.setViewDistance.mthd, amount);
-			Main.sendDebug("Succesfully set view distance at " + amount + " in world " + w.getName(), 1);
-		} catch (Exception e) {
-			Main.sendDebug("Exception at setViewDistance (" + w.getName() + ", " + amount + ")", 1);
-		}
-		
-		
-	}
+
+    }
 }

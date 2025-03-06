@@ -2,9 +2,11 @@ package org.alvindimas05.lagassist.hoppers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.alvindimas05.lagassist.Data;
 import org.alvindimas05.lagassist.Main;
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,85 +21,86 @@ import org.alvindimas05.lagassist.economy.EconomyManager;
 
 public class SellHoppers {
 
-	private static Map<Material, Double> prices = new HashMap<Material, Double>();
-	
-	private static boolean enabled;
-	
-	public static void Enabler(boolean reload) {
-		
-		enabled = Main.config.getBoolean("hopper-check.chunk-hoppers.sell-hopper.enabled");
-		
-		if (!enabled) {
-			return;
-		}
-		
-		String loc = "hopper-check.chunk-hoppers.sell-hopper.prices";
-		
-		prices.clear();
-		for (String stg : Main.config.getConfigurationSection(loc).getKeys(false)) {
-			prices.put(Material.getMaterial(stg), Main.config.getDouble(loc + "." + stg));
-		}
-		
-		Bukkit.getLogger().info("    §e[§a✔§e] §fSellHopper System");
-	}
-	
-	public static double getMultiplierPercentage(OfflinePlayer pl) {
-		if (!pl.isOnline()) {
-			return 0;
-		}
-		
-		Player p = pl.getPlayer();
-		
-		int multiplier = 100;
-		
-		for (PermissionAttachmentInfo permi : p.getEffectivePermissions()) {
-			String perm = permi.getPermission();
-			
-			if (!perm.startsWith("lagassist.sellhopper.")) {
-				continue;
-			}
-			
-			perm = perm.replace("lagassist.sellhopper.", "");
-			
-			if (!MathUtils.isInt(perm)) {
-				continue;
-			}
-			
-			multiplier = Math.max(multiplier, Integer.valueOf(perm));
-		}
-		
-		return multiplier;
-	}
-	
-	public static boolean attemptSell(Hopper h, ItemStack itm) { 
-		if (!enabled) {
-			return false;
-		}
-		
-		Location loc = h.getLocation();
-		
-		OfflinePlayer owner = Data.getOwningPlayer(loc);
-		
-		if (owner == null) {
-			return false;
-		}
-		
-		if (!Data.isSellHopper(loc)) {
-			return false;
-		}
-		
-		if (!prices.containsKey(itm.getType())) {
-			return false;
-		}
-		
-		double price = prices.get(itm.getType()) * itm.getAmount() * getMultiplierPercentage(owner) / 100d;
-		
-		if (price == 0) {
-			return false;
-		}
-		
-		EconomyManager.payPlayer(owner, price);
-		return true;
-	}
-	
+    private static final Map<Material, Double> prices = new HashMap<Material, Double>();
+
+    private static boolean enabled;
+
+    public static void Enabler(boolean reload) {
+
+        enabled = Main.config.getBoolean("hopper-check.chunk-hoppers.sell-hopper.enabled");
+
+        if (!enabled) {
+            return;
+        }
+
+        String loc = "hopper-check.chunk-hoppers.sell-hopper.prices";
+
+        prices.clear();
+        for (String stg : Objects.requireNonNull(Main.config.getConfigurationSection(loc)).getKeys(false)) {
+            prices.put(Material.getMaterial(stg), Main.config.getDouble(loc + "." + stg));
+        }
+
+        CustomLogger.info("    §e[§a✔§e] §fSellHopper System");
+    }
+
+    public static double getMultiplierPercentage(OfflinePlayer pl) {
+        if (!pl.isOnline()) {
+            return 0;
+        }
+
+        Player p = pl.getPlayer();
+
+        int multiplier = 100;
+
+        assert p != null;
+        for (PermissionAttachmentInfo permi : p.getEffectivePermissions()) {
+            String perm = permi.getPermission();
+
+            if (!perm.startsWith("lagassist.sellhopper.")) {
+                continue;
+            }
+
+            perm = perm.replace("lagassist.sellhopper.", "");
+
+            if (!MathUtils.isInt(perm)) {
+                continue;
+            }
+
+            multiplier = Math.max(multiplier, Integer.parseInt(perm));
+        }
+
+        return multiplier;
+    }
+
+    public static boolean attemptSell(Hopper h, ItemStack itm) {
+        if (!enabled) {
+            return false;
+        }
+
+        Location loc = h.getLocation();
+
+        OfflinePlayer owner = Data.getOwningPlayer(loc);
+
+        if (owner == null) {
+            return false;
+        }
+
+        if (!Data.isSellHopper(loc)) {
+            return false;
+        }
+
+        if (!prices.containsKey(itm.getType())) {
+            return false;
+        }
+
+        double price = prices.get(itm.getType()) * itm.getAmount() * getMultiplierPercentage(owner) / 100d;
+
+        if (price == 0) {
+            return false;
+        }
+
+        EconomyManager.payPlayer(owner, price);
+        return true;
+    }
+
 }

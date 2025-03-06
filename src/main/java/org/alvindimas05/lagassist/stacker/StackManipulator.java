@@ -13,107 +13,102 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import org.alvindimas05.lagassist.utils.VersionMgr;
 
+import java.util.Objects;
+
 public class StackManipulator implements Listener {
 
-	private static boolean deadentity = false;
+    private static boolean deadentity = false;
 
-	protected static boolean isDeadEntity() {
-		return deadentity;
-	}
+    protected static boolean isDeadEntity() {
+        return deadentity;
+    }
 
-	@EventHandler(priority=EventPriority.HIGHEST)
-	public void onDamage(EntityDamageEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDamage(EntityDamageEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
 
-		Entity eraw = e.getEntity();
+        Entity eraw = e.getEntity();
 
-		if (!(eraw instanceof LivingEntity)) {
-			return;
-		}
+        if (!(eraw instanceof LivingEntity)) {
+            return;
+        }
 
-		LivingEntity ent = (LivingEntity) eraw;
+        LivingEntity ent = (LivingEntity) eraw;
 
-		int dmg = (int) getModifierDamage(e);
-		int maxhealth = (int) VersionMgr.getMaxHealth(ent);
+        int dmg = (int) getModifierDamage(e);
+        int maxhealth = (int) VersionMgr.getMaxHealth(ent);
 
-		int stack = StackChunk.getStack(ent);
+        int stack = StackChunk.getStack(ent);
 
-		// Not a stacked mob. We don't do anything on it.
-		if (stack < 2) {
-			return;
-		}
+        // Not a stacked mob. We don't do anything on it.
+        if (stack < 2) {
+            return;
+        }
 
-		// Add damage dealt from before (in case it's not enough to kill).
-		dmg+=maxhealth-ent.getHealth();
+        // Add damage dealt from before (in case it's not enough to kill).
+        dmg += (int) (maxhealth - ent.getHealth());
 
-		int nextdamage = dmg % maxhealth;
-		int killed = dmg / maxhealth;
+        int nextdamage = dmg % maxhealth;
+        int killed = dmg / maxhealth;
 
-		// Handled differently, so cancel damage event.
-		// Plugins shouldn't oof since it's on HIGHEST.
+        // Handled differently, so cancel damage event.
+        // Plugins shouldn't oof since it's on HIGHEST.
 
-		e.setDamage(0);
+        e.setDamage(0);
 
-		// Set health for this or next subject to account for dmg dealt.
-		ent.setHealth(maxhealth-nextdamage);
+        // Set health for this or next subject to account for dmg dealt.
+        ent.setHealth(maxhealth - nextdamage);
 
-		if (killed >= stack) {
-			killed = stack;
-			ent.setHealth(0);
-			return;
-		}
+        if (killed >= stack) {
+            killed = stack;
+            ent.setHealth(0);
+            return;
+        }
 
-		Entity damager = (e instanceof EntityDamageByEntityEvent) ? ((EntityDamageByEntityEvent) e).getDamager() : null;
+        Entity damager = (e instanceof EntityDamageByEntityEvent) ? ((EntityDamageByEntityEvent) e).getDamager() : null;
 
-		if (killed > 0) {
-			spawnDeadEntity(ent.getLocation(), ent, killed, damager);
-		}
+        if (killed > 0) {
+            spawnDeadEntity(ent.getLocation(), ent, killed, damager);
+        }
 
-		StackChunk.setSize(ent, stack-killed);
-	}
+        StackChunk.setSize(ent, stack - killed);
+    }
 
-	private double getModifierDamage(EntityDamageEvent e) {
-		Entity eraw = e.getEntity();
-		int stack = StackChunk.getStack(eraw);
+    private double getModifierDamage(EntityDamageEvent e) {
+        Entity eraw = e.getEntity();
+        int stack = StackChunk.getStack(eraw);
 
-		double initial = e.getFinalDamage();
+        double initial = e.getFinalDamage();
 
-		DamageCause dc = e.getCause();
+        DamageCause dc = e.getCause();
 
-		if (Main.config.getStringList("smart-stacker.technical.damage.multiply").contains(dc.toString().toUpperCase())) {
-			initial*=stack;
-		}
+        if (Main.config.getStringList("smart-stacker.technical.damage.multiply").contains(dc.toString().toUpperCase())) {
+            initial *= stack;
+        }
 
-		return initial;
-	}
+        return initial;
+    }
 
-	private void spawnDeadEntity(Location loc, Entity ent, int amount, Entity cause) {
-		deadentity = true;
-		LivingEntity spawned = (LivingEntity) loc.getWorld().spawn(loc, ent.getType().getEntityClass());
-		StackChunk.setSize(spawned, amount);
-		deadentity = false;
+    private void spawnDeadEntity(Location loc, Entity ent, int amount, Entity cause) {
+        deadentity = true;
+        LivingEntity spawned = (LivingEntity) loc.getWorld().spawn(loc, Objects.requireNonNull(ent.getType().getEntityClass()));
+        StackChunk.setSize(spawned, amount);
+        deadentity = false;
 
 
 //		if (spawned instanceof Damageable) {
 //			damage = spawned.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()+5;
 //		}
 
-		if (cause == null) {
-			spawned.damage(5000);
-			return;
-		}
+        if (cause == null) {
+            spawned.damage(5000);
+            return;
+        }
 
-		spawned.damage(5000, cause);
-	}
-
-
-
-
-
-
-
+        spawned.damage(5000, cause);
+    }
 
 
 //	@EventHandler(priority=EventPriority.HIGHEST)

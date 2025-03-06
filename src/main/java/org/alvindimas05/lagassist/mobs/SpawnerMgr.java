@@ -2,6 +2,7 @@ package org.alvindimas05.lagassist.mobs;
 
 import java.util.SplittableRandom;
 
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,87 +19,87 @@ import org.alvindimas05.lagassist.utils.VersionMgr;
 
 public class SpawnerMgr implements Listener {
 
-	private static boolean enabled;
-	public static boolean active = false;
+    private static boolean enabled;
+    public static boolean active = false;
 
-	private static int chance;
-	private static boolean breaker;
+    private static int chance;
+    private static boolean breaker;
 
-	private static int delay;
-	private static int countmin;
-	private static int countmax;
-	private static int spawnrange;
-	private static int playerrange;
+    private static int delay;
+    private static int countmin;
+    private static int countmax;
+    private static int spawnrange;
+    private static int playerrange;
 
-	private static SplittableRandom rand = new SplittableRandom();
+    private static final SplittableRandom rand = new SplittableRandom();
 
-	public static void Enabler(boolean reload) {
-		enabled = Main.config.getBoolean("spawner-check.enabled");
+    public static void Enabler(boolean reload) {
+        enabled = Main.config.getBoolean("spawner-check.enabled");
 
-		if (!enabled) {
-			return;
-		}
+        if (!enabled) {
+            return;
+        }
 
-		if (!reload) {
-			Main.p.getServer().getPluginManager().registerEvents(new SpawnerMgr(), Main.p);
-		}
+        if (!reload) {
+            Main.p.getServer().getPluginManager().registerEvents(new SpawnerMgr(), Main.p);
+        }
 
-		breaker = Main.config.getBoolean("spawner-check.breaker");
-		chance = Main.config.getInt("spawner-check.chance");
+        breaker = Main.config.getBoolean("spawner-check.breaker");
+        chance = Main.config.getInt("spawner-check.chance");
 
-		delay = Main.config.getInt("spawner-check.custom-settings.delay");
-		countmin = Main.config.getInt("spawner-check.custom-settings.amount.min");
-		countmax = Main.config.getInt("spawner-check.custom-settings.amount.max");
-		spawnrange = Main.config.getInt("spawner-check.custom-settings.spawnrange");
+        delay = Main.config.getInt("spawner-check.custom-settings.delay");
+        countmin = Main.config.getInt("spawner-check.custom-settings.amount.min");
+        countmax = Main.config.getInt("spawner-check.custom-settings.amount.max");
+        spawnrange = Main.config.getInt("spawner-check.custom-settings.spawnrange");
 
-		int ntsqrt = Main.config.getInt("spawner-check.custom-settings.player-range");
-		playerrange = ntsqrt * ntsqrt;
+        int ntsqrt = Main.config.getInt("spawner-check.custom-settings.player-range");
+        playerrange = ntsqrt * ntsqrt;
 
-		Bukkit.getLogger().info("    §e[§a✔§e] §fSpawner Manager.");
-	}
+        CustomLogger.info("    §e[§a✔§e] §fSpawner Manager.");
+    }
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onMSpawn(SpawnerSpawnEvent e) {
-		CreatureSpawner cs = e.getSpawner();
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onMSpawn(SpawnerSpawnEvent e) {
+        CreatureSpawner cs = e.getSpawner();
 
-		if (!enabled) {
-			return;
-		}
+        if (!enabled) {
+            return;
+        }
 
-		if (!active) {
-			return;
-		}
+        if (!active) {
+            return;
+        }
 
-		if (cs == null) {
-			return;
-		}
+        if (cs == null) {
+            return;
+        }
 
-		if (WorldMgr.isBlacklisted(cs.getWorld())) {
-			return;
-		}
-		
-		if (breaker) {
-			Block b = cs.getBlock();
-			int rando = rand.nextInt(0, 1000);
-			if (rando < chance) {
-				b.setType(Material.AIR);
-			}
-		}
+        if (WorldMgr.isBlacklisted(cs.getWorld())) {
+            return;
+        }
 
-		boolean updated = false;
+        if (breaker) {
+            Block b = cs.getBlock();
+            int rando = rand.nextInt(0, 1000);
+            if (rando < chance) {
+                b.setType(Material.AIR);
+            }
+        }
 
-		if (cs.getDelay() != delay) {
-			cs.setDelay(delay);
-			updated = true;
-		}
+        boolean updated = false;
 
-		if (VersionMgr.isV1_12()) {
-			updated = V1_12.modifySpawner(cs, rand.nextInt(countmin, countmax + 1), spawnrange, playerrange);
-		}
+        if (cs.getDelay() != delay) {
+            cs.setDelay(delay);
+            updated = true;
+        }
 
-		if (updated) {
-			cs.update();
-		}
-	}
+        if (VersionMgr.isV1_12()) {
+            updated = V1_12.modifySpawner(cs, rand.nextInt(countmin, countmax + 1), spawnrange, playerrange);
+        }
+
+        if (updated) {
+            cs.update();
+        }
+    }
 
 }

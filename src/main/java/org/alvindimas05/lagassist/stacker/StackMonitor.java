@@ -16,27 +16,28 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 public class StackMonitor {
 
-	private static Map<Entity, Location> entities = Collections.synchronizedMap(new WeakHashMap<Entity, Location>());
-	private static CopyOnWriteArrayList<SplitChangeEvent> events = new CopyOnWriteArrayList<SplitChangeEvent>();
+    private static final Map<Entity, Location> entities = Collections.synchronizedMap(new WeakHashMap<Entity, Location>());
+    private static final CopyOnWriteArrayList<SplitChangeEvent> events = new CopyOnWriteArrayList<SplitChangeEvent>();
 
-	public static void Enabler(boolean reload) {
+    public static void Enabler(boolean reload) {
 
-		if (!reload) {
-			runTask();
-		}
-	}
+        if (!reload) {
+            runTask();
+        }
+    }
 
-	private static void runTask() {
-		// Synchronizer tool.
-		Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
+    private static void runTask() {
+        // Synchronizer tool.
+        Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
 
-			List<Entity> ents = new ArrayList<Entity>();
-			for (World w : Bukkit.getWorlds()) {
-				ents.addAll(w.getEntities());
-			}
+            List<Entity> ents = new ArrayList<Entity>();
+            for (World w : Bukkit.getWorlds()) {
+                ents.addAll(w.getEntities());
+            }
 
 //			for (Entity ent : ents) {
 //				if (ent == null) {
@@ -75,60 +76,60 @@ public class StackMonitor {
 //				events.clear();
 //			}
 
-			Bukkit.getScheduler().runTaskAsynchronously(Main.p, () -> {
-				for (Entity ent : ents) {
-					if (ent == null) {
-						continue;
-					}
+            Bukkit.getScheduler().runTaskAsynchronously(Main.p, () -> {
+                for (Entity ent : ents) {
+                    if (ent == null) {
+                        continue;
+                    }
 
-					if (!(ent instanceof LivingEntity)) {
-						continue;
-					}
+                    if (!(ent instanceof LivingEntity)) {
+                        continue;
+                    }
 
-					if (ent instanceof HumanEntity) {
-						continue;
-					}
+                    if (ent instanceof HumanEntity) {
+                        continue;
+                    }
 
-					Location old = null;
-					if (entities.containsKey(ent)) {
-						old = entities.get(ent);
-					}
-					Location loc = ent.getLocation();
+                    Location old = null;
+                    if (entities.containsKey(ent)) {
+                        old = entities.get(ent);
+                    }
+                    Location loc = ent.getLocation();
 
-					if (loc.equals(old)) {
-						continue;
-					}
+                    if (loc.equals(old)) {
+                        continue;
+                    }
 
-					entities.put(ent, loc);
+                    entities.put(ent, loc);
 
-					if (!runMove(old, loc)) {
-						continue;
-					}
+                    if (!runMove(old, loc)) {
+                        continue;
+                    }
 
-					events.add(new SplitChangeEvent(ent, old, loc));
-				}
-			});
+                    events.add(new SplitChangeEvent(ent, old, loc));
+                }
+            });
 
-			for (SplitChangeEvent event : events) {
-				Bukkit.getPluginManager().callEvent(event);
-			}
-			events.clear();
-		}, 5, 5);
+            for (SplitChangeEvent event : events) {
+                Bukkit.getPluginManager().callEvent(event);
+            }
+            events.clear();
+        }, 5, 5);
 
-		// Creator tool.
-	}
+        // Creator tool.
+    }
 
-	public static boolean runMove(Location from, Location to) {
-		if (!Main.config.getBoolean("smart-stacker.checks.split-change-check")) {
-			return false;
-		}
+    public static boolean runMove(Location from, Location to) {
+        if (!Main.config.getBoolean("smart-stacker.checks.split-change-check")) {
+            return false;
+        }
 
-		if (from == null || to == null) {
-			return false;
-		}
+        if (from == null || to == null) {
+            return false;
+        }
 
-		from = from.clone();
-		to = to.clone();
+        from = from.clone();
+        to = to.clone();
 
 //		if (!from.getWorld().getName().equals(to.getWorld().getName())) {
 //			return true;
@@ -169,117 +170,112 @@ public class StackMonitor {
 //		int sp1 = StackChunk.getSplit(from);
 //		int sp2 = StackChunk.getSplit(to);
 
-		return new Split(from).equals(new Split(to));
-	}
+        return new Split(from).equals(new Split(to));
+    }
 
-	public static class Split {
-		private String world;
-		private int x;
-		private int z;
+    public static class Split {
+        private String world;
+        private int x;
+        private int z;
 
-		private int split;
+        private int split;
 
-		public Split(Location loc) {
-			setWorld(loc.getWorld().getName());
+        public Split(Location loc) {
+            setWorld(loc.getWorld().getName());
 
-			setX(loc.getBlockX() / 16);
-			setZ(loc.getBlockZ() / 16);
+            setX(loc.getBlockX() / 16);
+            setZ(loc.getBlockZ() / 16);
 
-			setSplit(StackChunk.getSplit(loc));
-		}
+            setSplit(StackChunk.getSplit(loc));
+        }
 
-		public int getSplit() {
-			return split;
-		}
+        public int getSplit() {
+            return split;
+        }
 
-		public void setSplit(int split) {
-			this.split = split;
-		}
+        public void setSplit(int split) {
+            this.split = split;
+        }
 
-		public int getZ() {
-			return z;
-		}
+        public int getZ() {
+            return z;
+        }
 
-		public void setZ(int z) {
-			this.z = z;
-		}
+        public void setZ(int z) {
+            this.z = z;
+        }
 
-		public int getX() {
-			return x;
-		}
+        public int getX() {
+            return x;
+        }
 
-		public void setX(int x) {
-			this.x = x;
-		}
+        public void setX(int x) {
+            this.x = x;
+        }
 
-		public String getWorld() {
-			return world;
-		}
+        public String getWorld() {
+            return world;
+        }
 
-		public void setWorld(String world) {
-			this.world = world;
-		}
+        public void setWorld(String world) {
+            this.world = world;
+        }
 
-		public boolean equals(Split other) {
-			if (getX() != other.getX()) {
+        public boolean equals(Split other) {
+            if (getX() != other.getX()) {
 //				System.out.println("X NOT SAME");
-				return false;
-			}
+                return false;
+            }
 
-			if (getZ() != other.getZ()) {
+            if (getZ() != other.getZ()) {
 //				System.out.println("Z NOT SAME");
-				return false;
-			}
+                return false;
+            }
 
-			if (getSplit() != other.getSplit()) {
+            if (getSplit() != other.getSplit()) {
 //				System.out.println("SPLIT NOT SAME");
-				return false;
-			}
+                return false;
+            }
+            //System.out.println("WORLD NOT SAME");
+            return getWorld().equalsIgnoreCase(other.getWorld());
+        }
 
-			if (!getWorld().equalsIgnoreCase(other.getWorld())) {
-//				System.out.println("WORLD NOT SAME");
-				return false;
-			}
+    }
 
-			return true;
-		}
+    public static class SplitChangeEvent extends Event {
 
-	}
+        private static final HandlerList HANDLERS = new HandlerList();
 
-	public static class SplitChangeEvent extends Event {
+        private final Entity ent;
+        private final Location from;
+        private final Location to;
 
-		private static final HandlerList HANDLERS = new HandlerList();
+        public SplitChangeEvent(Entity ent, Location from, Location to) {
+            this.ent = ent;
+            this.from = from;
+            this.to = to;
+        }
 
-		private Entity ent;
-		private Location from;
-		private Location to;
+        public @NotNull HandlerList getHandlers() {
+            return HANDLERS;
+        }
 
-		public SplitChangeEvent(Entity ent, Location from, Location to) {
-			this.ent = ent;
-			this.from = from;
-			this.to = to;
-		}
+        public static HandlerList getHandlerList() {
+            return HANDLERS;
+        }
 
-		public HandlerList getHandlers() {
-			return HANDLERS;
-		}
+        public Entity getEntity() {
+            return ent;
+        }
 
-		public static HandlerList getHandlerList() {
-			return HANDLERS;
-		}
+        public Location getFrom() {
+            return from;
+        }
 
-		public Entity getEntity() {
-			return ent;
-		}
+        public Location getTo() {
+            return to;
+        }
 
-		public Location getFrom() {
-			return from;
-		}
-
-		public Location getTo() {
-			return to;
-		}
-
-	}
+    }
 
 }

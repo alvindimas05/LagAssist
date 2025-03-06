@@ -17,13 +17,13 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class ChkStats implements Comparable<ChkStats> {
 
     private int score = 0;
-    private int coords[] = new int[2];
+    private final int[] coords = new int[2];
 
-    private BlockState[] tiles;
-    private Entity[] ents;
-    private String world;
+    private final BlockState[] tiles;
+    private final Entity[] ents;
+    private final String world;
 
-    private Map<String, Integer> amount = new HashMap<>();
+    private final Map<String, Integer> amount = new HashMap<>();
 
     public ChkStats(Chunk ch, boolean genscores) {
         this.tiles = ch.getTileEntities();

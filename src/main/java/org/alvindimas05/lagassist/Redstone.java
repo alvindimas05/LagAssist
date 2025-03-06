@@ -2,6 +2,7 @@ package org.alvindimas05.lagassist;
 
 import java.util.SplittableRandom;
 
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.V1_11;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.alvindimas05.lagassist.utils.ServerType;
@@ -36,7 +37,7 @@ public class Redstone implements Listener {
             Main.p.getServer().getPluginManager().registerEvents(new Redstone(), Main.p);
         }
 
-        Bukkit.getLogger().info("    §e[§a✔§e] §fRedstone Culler.");
+        CustomLogger.info("    §e[§a✔§e] §fRedstone Culler.");
     }
 
     public static void CullRedstone() {

@@ -5,8 +5,10 @@ import java.util.Map;
 
 import org.alvindimas05.lagassist.Main;
 import org.alvindimas05.lagassist.utils.Cache;
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -34,7 +36,8 @@ public class ChkLimiter implements Listener {
             Main.p.getServer().getPluginManager().registerEvents(new ChkLimiter(), Main.p);
             runTask();
         }
-        Bukkit.getLogger().info("    §e[§a✔§e] §fChunk Limiter.");
+        CustomLogger.info(ChatColor.YELLOW + "    [" + ChatColor.GREEN + "✔" + ChatColor.YELLOW + "] "
+                + ChatColor.WHITE + "Chunk Limiter enabled.");
 
         moblimit = Main.config.getInt("limiter.mobs.total-limit");
         tilelimit = Main.config.getInt("limiter.tiles.total-limit");
@@ -204,11 +207,7 @@ public class ChkLimiter implements Listener {
             return false;
         }
 
-        if (current < maximum) {
-            return false;
-        }
-
-        return true;
+        return current >= maximum;
 
     }
 
@@ -237,11 +236,7 @@ public class ChkLimiter implements Listener {
             return false;
         }
 
-        if (current < maximum) {
-            return false;
-        }
-
-        return true;
+        return current >= maximum;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 
-import org.alvindimas05.lagassist.utils.PaperOnly;
-import org.alvindimas05.lagassist.utils.ServerType;
-import org.alvindimas05.lagassist.utils.WorldMgr;
+import org.alvindimas05.lagassist.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -24,7 +22,6 @@ import org.bukkit.inventory.ItemStack;
 
 import org.alvindimas05.lagassist.Main;
 import org.alvindimas05.lagassist.stacker.StackManager;
-import org.alvindimas05.lagassist.utils.VersionMgr;
 
 public class SmartMob implements Listener {
 
@@ -42,7 +39,7 @@ public class SmartMob implements Listener {
 			Main.p.getServer().getPluginManager().registerEvents(new SmartMob(), Main.p);
 		}
 
-		Bukkit.getLogger().info("    §e[§a✔§e] §fSmart Mob Tools.");
+		CustomLogger.info("    §e[§a✔§e] §fSmart Mob Tools.");
 		mobs = Main.config.getStringList("smart-cleaner.mobs");
 
 		Whitelist = Main.config.getBoolean("smart-cleaner.whitelist");
