@@ -33,7 +33,7 @@ java {
 dependencies {
 //    Older paper-api only supports up to 1.16.5
 //    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
     implementation("com.google.code.gson:gson:2.11.0")
