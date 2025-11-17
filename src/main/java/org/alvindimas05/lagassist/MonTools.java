@@ -54,6 +54,8 @@ public class MonTools implements Listener {
                     view.getRenderers().clear();
                     view.addRenderer(new TpsRender());
                 }
+            } else {
+                Bukkit.getLogger().warning(Main.PREFIX + "Can't find Map ID on Map Monitor");
             }
         } else {
             MapView map = Bukkit.createMap(Bukkit.getWorlds().get(0));
