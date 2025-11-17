@@ -1,5 +1,6 @@
 package org.alvindimas05.lagassist.packets;
 
+import org.alvindimas05.lagassist.Main;
 import org.bukkit.Bukkit;
 
 public enum ServerPackage {
@@ -13,26 +14,39 @@ public enum ServerPackage {
 		this.path = path;
 	}
 
-	public static String getServerVersion() {
-		String name = Bukkit.getServer().getClass().getPackage().getName();
+    public static String getServerVersion() {
+        String craftPkg = Bukkit.getServer().getClass().getPackage().getName();
 
-		// CraftBukkit doesn't use server version on the package name after version 1.20.4
-		// So we need to add it manually instead
-		if(!name.contains("v1_")){
-			String version = Bukkit.getBukkitVersion().split("-")[0];
-			switch (version) {
-				case "1.20.5":
-				case "1.20.6": return "v1_20_R4";
-				case "1.21":
-				case "1.21.1": return "v1_21_R1";
-				case "1.21.3": return "v1_21_R2";
-                // Set default to latest
-				default: return "v1_21_R3";
-            }
-		}
+        // If the package already contains v1_* just return it
+        if (craftPkg.contains("v1_")) {
+            return craftPkg.substring(craftPkg.lastIndexOf('.') + 1);
+        }
 
-		return name.substring(name.lastIndexOf('.') + 1);
-	}
+        // Example: "1.21.4" → "1_21_"
+        String mcVersion = Bukkit.getMinecraftVersion();
+        String[] split = mcVersion.split("\\.");
+        if (split.length >= 2) {
+            mcVersion = split[0] + "_" + split[1] + "_";
+        } else {
+            mcVersion = mcVersion.replace(".", "_") + "_";
+        }
+
+        // Try R1..R15
+        for (int i = 1; i <= 15; i++) {
+            String version = "v" + mcVersion + "R" + i;
+            String nmsPath = "org.bukkit.craftbukkit." + version + ".CraftServer";
+
+            try {
+                Class.forName(nmsPath);
+                return version;
+            } catch (ClassNotFoundException ignored) {}
+        }
+
+        Bukkit.getLogger().warning(Main.PREFIX + "Can't get server version from " + Bukkit.getMinecraftVersion());
+
+        return "v" + mcVersion + "R1";
+    }
+
 
 	@Override
 	public String toString() {

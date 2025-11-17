@@ -183,22 +183,28 @@ public class Reflection {
 	}
 	
 	private static Object minecraftserver = null;
-	public static double getTPS(int number) {
-		
-		try {
-		if (minecraftserver == null) {
-			minecraftserver = Methods.getServer.mthd.invoke(null);
-		}
-		
-		Field f = Reflection.getField(Classes.MinecraftServer.type, "recentTps");
-		f.setAccessible(true);
-		
-		return ((double[])f.get(minecraftserver))[number];
-		} catch(Exception e) {
-			e.printStackTrace();
-			return -1;
-		}
-	}
+    public static double getTPS(int number) {
+        try {
+            if (minecraftserver == null) {
+                minecraftserver = Methods.getServer.mthd.invoke(null);
+            }
+
+            try {
+                Field f = Reflection.getField(Classes.MinecraftServer.type, "tps");
+                f.setAccessible(true);
+                return ((double[])f.get(minecraftserver))[number];
+            } catch (NoSuchFieldException e) {
+                Field f = Reflection.getField(Classes.MinecraftServer.type, "recentTps");
+                f.setAccessible(true);
+                return ((double[])f.get(minecraftserver))[number];
+            } catch (NullPointerException e) {
+                return -1;
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 
 	public static int getId(MapView view) {
 		if (view == null) {

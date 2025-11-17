@@ -71,7 +71,6 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	private static void EnableClasses(boolean reload) {
-
 		EconomyManager.Enabler(reload);
 
 		SafetyManager.Enabler(reload);
