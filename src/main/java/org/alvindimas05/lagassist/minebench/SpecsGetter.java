@@ -61,20 +61,40 @@ public class SpecsGetter {
             e.printStackTrace();
         }
         return "unknown";
-    }
+	}
 
-    private static String getWindowsCPU() {
-        Runtime rt = Runtime.getRuntime();
-        try {
-            Process proc = rt.exec("wmic cpu get name");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            reader.readLine();
-            reader.readLine();
-            return reader.readLine();
-        } catch (IOException e) {
-            return "unknown";
+    private static String normalizeCPUForPassMark(String cpu) {
+        String[] patterns = {
+                // Intel consumer i3/i5/i7/i9-xxxx
+                "(i[3-9]-?\\d{3,5}[A-Z]?)",
+
+                // AMD Ryzen 3/5/7/9 xxxxHS/HX etc.
+                "([3-9]\\s?\\d{3,5}[A-Z]{0,3})",
+
+                // Threadripper 19xx / 29xx / 39xx / 59xx etc.
+                "(\\d{4,5}WX?)",  // e.g. 3990X, 2970WX
+
+                // Xeon E-xxxx, E5-xxxx, E3-xxxx, W-xxxx
+                "((E|W)[3-9]?-?\\d{3,5}[A-Z]?)"
+        };
+
+        for (String p : patterns) {
+            var matcher = Pattern.compile(p).matcher(cpu);
+            if (matcher.find()) return matcher.group(1);
         }
 
+        return cpu;
+    }
+
+	 private static String getWindowsCPU() {
+      Runtime rt = Runtime.getRuntime();
+      try {
+          Process proc = rt.exec("powershell -command \"(Get-CimInstance Win32_Processor).Name\"");
+          BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+          return reader.readLine();
+      } catch (IOException e) {
+          return "unknown";
+      }
     }
 
     private static String getMacCPU() {
@@ -112,9 +132,10 @@ public class SpecsGetter {
         String command = switch (OS) {
             case "mac" -> "sysctl -n machdep.cpu.core_count";
             case "linux" -> "lscpu";
-            case "windows" -> "cmd /C WMIC CPU Get /Format:List";
+            case "windows" -> "powershell -command \"(Get-CimInstance Win32_Processor).NumberOfCores\"";
             default -> "";
         };
+      
         Process process = null;
         int numberOfCores = 0;
         int sockets = 0;
@@ -146,11 +167,7 @@ public class SpecsGetter {
                             sockets = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
                         }
                     }
-                    case "windows" -> {
-                        if (line.contains("NumberOfCores")) {
-                            numberOfCores = Integer.parseInt(line.split("=")[1]);
-                        }
-                    }
+                    case "windows" -> numberOfCores = Integer.parseInt(line);
                 }
             }
         } catch (IOException e) {
@@ -192,8 +209,13 @@ public class SpecsGetter {
         return (float) osmx.getSystemLoadAverage();
     }
 
-    public static BenchResponse getBenchmark() {
-        String cpuname = formatCPU(getCPU(getOS()));
+    String OS = getOS();
+		String cpuname;
+        if(OS.equals("windows")){
+            cpuname = getCPU(OS);
+        } else {
+            cpuname = formatCPU(getCPU(OS));
+        }
 
         if (cpuname.equals("unknown")) {
             return new BenchResponse(-1, -1, -1, -1, false);
@@ -214,9 +236,11 @@ public class SpecsGetter {
 
             Gson gson = new Gson();
             BenchmarkData data = gson.fromJson(response.toString(), BenchmarkData.class);
+          
+            String passMarkCpuName = normalizeCPUForPassMark(cpuname);
 
             List<BenchmarkData.BenchmarkCPU> matches = data.data.stream()
-                    .filter(cpu -> cpu.name.contains(cpuname))
+                    .filter(cpu -> cpu.name.contains(passMarkCpuName))
                     .toList();
 
             if (matches.isEmpty()) {

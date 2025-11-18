@@ -72,9 +72,8 @@ public class Main extends JavaPlugin implements Listener {
         Objects.requireNonNull(getCommand("lagassist")).setTabCompleter(new CommandTabListener());
     }
 
-    private static void EnableClasses(boolean reload) {
-
-        EconomyManager.Enabler(reload);
+	private static void EnableClasses(boolean reload) {
+		    EconomyManager.Enabler(reload);
 
         SafetyManager.Enabler(reload);
         Reflection.Enabler();
