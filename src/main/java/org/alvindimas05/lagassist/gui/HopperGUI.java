@@ -172,7 +172,7 @@ public class HopperGUI implements Listener {
 			return;
 		}
 
-		Inventory invent = e.getView().getTopInventory();
+		Inventory invent = Reflection.getTopInventory(e);
 		
 		// Click outside inv.
 		if (invent == null) {
