@@ -3,202 +3,176 @@ package org.alvindimas05.lagassist.chunks;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.Reflection;
-import org.alvindimas05.lagassist.utils.Chat;
+import org.alvindimas05.lagassist.utils.CustomLogger;
 import org.alvindimas05.lagassist.utils.MathUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
+import org.alvindimas05.lagassist.utils.ServerType;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import org.alvindimas05.lagassist.utils.VersionMgr;
-
 public class ChunkGenerator {
 
-	private static Object chunkProvider;
-	private static World world;
-	private static BukkitTask gentask;
+    private static World world;
+    private static BukkitTask bukkitTask;
+    private static ScheduledTask foliaTask;
 
-	// WORLDBORDER VALUES
-	private static int maxx;
-	private static int maxz;
+    private static int maxx, maxz, minx, minz;
+    private static int currentIndex;
 
-	private static int minx;
-	private static int minz;
+    public static void pregenWorld(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "You need to execute this command as a player.");
+            return;
+        }
 
-	// WORLDBORDER VALUES END
+        if (args.length != 2 || !MathUtils.isInt(args[1])) {
+            sender.sendMessage(ChatColor.YELLOW + "Usage: " + ChatColor.GREEN + "/lagassist pregench [Max-Millis-Per-Tick]");
+            return;
+        }
 
-	private static int currenti;
+        int millis = Integer.parseInt(args[1]);
+        World w = player.getWorld();
 
-	public static void pregenWorld(CommandSender s, String[] args) {
-		if (!(s instanceof Player)) {
-			s.sendMessage(Main.PREFIX + "You need to execute this command as a player");
-			return;
-		}
+        if (w.getWorldBorder().getSize() > 50000) {
+            sender.sendMessage(ChatColor.RED + "The max world border size is 50,000 blocks.");
+            return;
+        }
 
-		if (args.length != 2) {
-			s.sendMessage(Main.PREFIX + "Correct usage: §2/lagassist pregench [Max-Millis-Per-Tick]");
-			return;
-		}
+        sender.sendMessage(ChatColor.AQUA + "⏳ Chunk pre-generation started! This may take some time.");
+        pregenWorld(w, millis);
+    }
 
-		if (!MathUtils.isInt(args[1])) {
-			s.sendMessage(Main.PREFIX + "Please input a correct ammount of milliseconds.");
-			return;
-		}
+    public static void stopGen(CommandSender sender) {
+        boolean cancelled = false;
+        if (bukkitTask != null) {
+            bukkitTask.cancel();
+            bukkitTask = null;
+            cancelled = true;
+        }
+        if (foliaTask != null) {
+            foliaTask.cancel();
+            foliaTask = null;
+            cancelled = true;
+        }
+        if (cancelled) {
+            sender.sendMessage(ChatColor.RED + "❌ Chunk pre-generation stopped.");
+        }
+    }
 
-		if (gentask != null) {
-			s.sendMessage(
-					Main.PREFIX + "The world is already pregenerating. Please wait for it to finish or cancel it.");
-			return;
-		}
+    private static void pregenWorld(World w, int millis) {
+        world = w;
 
-		int millis = Integer.valueOf(args[1]);
+        WorldBorder wb = w.getWorldBorder();
+        Location center = wb.getCenter();
+        double radius = wb.getSize() / 2;
 
-		Player p = (Player) s;
+        maxx = (int) ((center.getX() + radius) / 16);
+        maxz = (int) ((center.getZ() + radius) / 16);
+        minx = (int) ((center.getX() - radius) / 16);
+        minz = (int) ((center.getZ() - radius) / 16);
 
-		World w = p.getWorld();
+        Chunk spawnChunk = world.getSpawnLocation().getChunk();
+        int spawnX = spawnChunk.getX();
+        int spawnZ = spawnChunk.getZ();
 
-		if (w.getWorldBorder().getSize() > 50000) {
-			s.sendMessage(Main.PREFIX + "The max worldborder size is 50k.");
-			return;
-		}
+        List<int[]> chunks = generateChunkList(spawnX, spawnZ);
 
-		pregenWorld(w, millis);
-	}
+        if (ServerType.isFolia()) {
+            startFoliaGeneration(chunks, millis);
+        } else {
+            startBukkitGeneration(chunks, millis);
+        }
+    }
 
-	public static void stopGen(CommandSender s) {
-		if (gentask == null) {
-			s.sendMessage(Main.PREFIX + "There is no active world pregeneration.");
-			return;
-		}
-		gentask.cancel();
-		gentask = null;
-		s.sendMessage(Main.PREFIX + "Pregeneration task cancelled.");
+    private static List<int[]> generateChunkList(int startX, int startZ) {
+        List<int[]> chunks = new ArrayList<>();
+        int x = startX, z = startZ, i = 1;
 
-	}
+        while (isInside(x, z)) {
+            for (int tempX = x + 1; tempX <= x + i; tempX++) chunks.add(new int[]{tempX, z});
+            x += i;
+            for (int tempZ = z - 1; tempZ >= z - i; tempZ--) chunks.add(new int[]{x, tempZ});
+            z -= i;
+            i++;
+            for (int tempX = x - 1; tempX >= x - i; tempX--) chunks.add(new int[]{tempX, z});
+            x -= i;
+            for (int tempZ = z + 1; tempZ <= z + i; tempZ++) chunks.add(new int[]{x, tempZ});
+            z += i;
+            i++;
+        }
+        return chunks;
+    }
 
-	private static void pregenWorld(World w, int millis) {
+    private static void startFoliaGeneration(List<int[]> chunks, int millis) {
+        foliaTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(Main.p, task -> {
+            final long startTime = System.currentTimeMillis();
+            final int batchSize = Math.min(5, chunks.size() / 100);
 
-		// PREPARING ENVIRONMENT
-		if (!VersionMgr.isNewMaterials()) {
-			chunkProvider = Reflection.getChunkProvider(Reflection.getWorldServer(Reflection.getCraftWorld(w)));
-		}
-		world = w;
+            for (int i = 0; i < batchSize && currentIndex < chunks.size(); i++) {
+                final int[] coords = chunks.get(currentIndex);
+                scheduleChunkLoad(coords[0], coords[1]);
+                currentIndex++;
 
-		// PREPARING WORLDBORDER CHECK
-		WorldBorder wb = w.getWorldBorder();
-		Location center = wb.getCenter();
-		double radius = wb.getSize() / 2;
+                if (currentIndex % 300 == 0) {
+                    reportProgress(currentIndex, chunks.size());
+                }
 
-		maxx = (int) ((center.getX() + radius) / 16);
-		maxz = (int) ((center.getZ() + radius) / 16);
+                if (System.currentTimeMillis() - startTime >= millis) {
+                    break;
+                }
+            }
 
-		minx = (int) ((center.getX() - radius) / 16);
-		minz = (int) ((center.getZ() - radius) / 16);
+            if (currentIndex >= chunks.size()) {
+                task.cancel();
+                foliaTask = null;
+                Bukkit.broadcastMessage(ChatColor.GREEN + "✅ Chunk pre-generation complete!");
+            }
+        }, 1L, 1L);
+    }
 
-		Chunk spawn = world.getSpawnLocation().getChunk();
-		int xfin = spawn.getX();
-		int zfin = spawn.getZ();
+    private static void scheduleChunkLoad(int x, int z) {
+        Bukkit.getRegionScheduler().execute(Main.p, world, x, z, () -> {
+            if (!world.isChunkGenerated(x, z)) {
+                world.loadChunk(x, z, true);
+            }
+        });
+    }
 
-		// Prepare list of chunks to pregenerate. It will further be used to pregenerate
-		// the world.
+    private static void startBukkitGeneration(List<int[]> chunks, int millis) {
+        bukkitTask = Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
+            long startTime = System.currentTimeMillis();
+            for (int i = currentIndex; i < chunks.size(); i++) {
+                int[] coords = chunks.get(i);
+                if (!world.isChunkGenerated(coords[0], coords[1])) {
+                    world.loadChunk(coords[0], coords[1], true);
+                }
 
-		Bukkit.getScheduler().runTaskAsynchronously(Main.p, new Runnable() {
-			@Override
-			public void run() {
-				List<int[]> chunks = new ArrayList<int[]>();
+                if (i % 300 == 0) {
+                    reportProgress(i, chunks.size());
+                }
 
-				int x = xfin;
-				int z = zfin;
-				int i = 1;
+                if (System.currentTimeMillis() - startTime >= millis) {
+                    currentIndex = i + 1;
+                    return;
+                }
+            }
+            bukkitTask.cancel();
+            bukkitTask = null;
+        }, 1L, 1L);
+    }
 
-				while (isInside(x, z)) {
-					for (int temp = x + 1; temp <= x + i; temp++) {
-						chunks.add(new int[] { x, z });
-					}
-					x += i;
-					for (int temp = z - 1; temp >= z - i; temp--) {
-						chunks.add(new int[] { x, temp });
-					}
-					z -= i;
-					i++;
-					for (int temp = x - 1; temp >= x - i; temp--) {
-						chunks.add(new int[] { temp, z });
-					}
-					x -= i;
-					for (int temp = z + 1; temp <= z + i; temp++) {
-						chunks.add(new int[] { x, temp });
-					}
-					z += i;
-					i++;
-				}
-				startGen(chunks, millis);
-			}
-		});
-	}
+    private static boolean isInside(int x, int z) {
+        return x >= minx && x <= maxx && z >= minz && z <= maxz;
+    }
 
-	private static void startGen(List<int[]> chunks, int millis) {
-		currenti = 0;
-		gentask = Bukkit.getScheduler().runTaskTimer(Main.p, new Runnable() {
-			@Override
-			public void run() {
-				long time = System.currentTimeMillis();
-				for (int i = currenti; i < chunks.size(); i++) {
-					pregenChunk(chunks.get(i));
-					if (i % 300 == 0 && i != 0) {
-						int percent = (int) ((double) i / chunks.size() * 100);
-						Bukkit.getLogger()
-								.info("§e[§a✪§e] §fThe pregeneration of the §2"
-										+ Chat.capitalize(world.getName()) + " §fworld is at §a" + percent
-										+ "% completion.");
-					}
-					if (i % 20 == 0 && i != 0) {
-						long curr = System.currentTimeMillis();
-						if (time + millis < curr) {
-							currenti = i;
-							return;
-						}
-					}
-				}
-				gentask.cancel();
-				gentask = null;
-				Bukkit.getLogger()
-						.info("§e[§a✪§e] §fThe pregeneration of the §2" + Chat.capitalize(world.getName())
-								+ " §fworld is finished. Thank you for your patience.");
-
-			}
-		}, 1L, 1L);
-	}
-
-	private static void pregenChunk(int[] cords) {
-
-		pregenChunk(cords[0], cords[1]);
-
-	}
-
-	private static void pregenChunk(int x, int z) {
-		if (VersionMgr.isChunkGenerated(world, chunkProvider, x, z)) {
-			return;
-		}
-
-		VersionMgr.loadChunk(world, x, z);
-	}
-
-	private static boolean isInside(int x, int z) {
-
-		if (x < minx || x > maxx) {
-			return false;
-		}
-		if (z < minz || z > maxz) {
-			return false;
-		}
-
-		return true;
-	}
-
+    private static void reportProgress(int current, int total) {
+        int percent = (int) ((current / (double) total) * 100);
+        String progressBar = ChatColor.YELLOW + "[" + ChatColor.GREEN
+                + "■".repeat(percent / 10) + ChatColor.RED
+                + "■".repeat(10 - percent / 10) + ChatColor.YELLOW + "]";
+        Bukkit.broadcastMessage(ChatColor.GOLD + "⏳ Progress: " + ChatColor.BOLD + percent + "%" + " " + progressBar + ChatColor.GRAY + " (" + current + "/" + total + ")");
+    }
 }

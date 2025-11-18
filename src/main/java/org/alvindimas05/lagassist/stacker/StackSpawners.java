@@ -4,10 +4,10 @@ import java.util.regex.Pattern;
 
 public class StackSpawners {
 
-	public static Pattern itemformat;
-	
-	public static void Enabler(boolean reload) {
-		
-		
-	}
+    public static Pattern itemformat;
+
+    public static void Enabler(boolean reload) {
+
+
+    }
 }

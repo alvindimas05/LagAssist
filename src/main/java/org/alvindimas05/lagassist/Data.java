@@ -2,12 +2,9 @@ package org.alvindimas05.lagassist;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.alvindimas05.lagassist.utils.WorldMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,189 +21,164 @@ import org.alvindimas05.lagassist.hoppers.SellHoppers;
 
 public class Data {
 
-	private static File dataf = new File(Main.p.getDataFolder(), "data.yml");
-	private static FileConfiguration data = new YamlConfiguration();
+    private static final File dataf = new File(Main.p.getDataFolder(), "data.yml");
+    private static final FileConfiguration data = new YamlConfiguration();
+    private static long last;
 
-	public static void Enabler() {
+    public static void Enabler() {
+        try {
+            if (!dataf.exists()) {
+                dataf.createNewFile();
+            }
 
-		try {
-			if (!dataf.exists()) {
-				dataf.createNewFile();
-			}
+            data.load(dataf);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-			data.load(dataf);
-		} catch (Exception e) {
-			e.printStackTrace();
+        if (!data.contains("version")) {
+            if (data.contains("hoppers")) {
+                for (String rawh : Objects.requireNonNull(data.getConfigurationSection("hoppers")).getKeys(false)) {
+                    String loc = "hoppers." + rawh;
 
-		}
+                    List<String> values = data.getStringList(loc);
+                    data.set(loc, null);
+                    data.set(loc + ".materials", values);
+                }
+            }
 
-		if (!data.contains("version")) {
+            data.set("version", 1);
+            saveData();
+        }
+    }
 
-			if (data.contains("hoppers")) {
-				for (String rawh : data.getConfigurationSection("hoppers").getKeys(false)) {
-					String loc = "hoppers." + rawh;
+    private static void saveData() {
+        if (System.currentTimeMillis() - last < 3000) {
+            return;
+        }
 
-					List<String> values = data.getStringList(loc);
-					data.set(loc, null);
-					data.set(loc + ".materials", values);
-				}
-			}
+        last = System.currentTimeMillis();
 
-			data.set("version", 1);
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().execute(Main.p, () -> {
+                try {
+                    data.save(dataf);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(Main.p, () -> {
+                try {
+                    data.save(dataf);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
 
-			saveData();
+    private static short genMapId() {
+        MapView newe = Bukkit.createMap(Bukkit.getWorlds().getFirst());
+        short mapid = (short) Reflection.getId(newe);
+        data.set("data.mapid", mapid);
+        saveData();
+        return mapid;
+    }
 
-		}
+    public static short getMapId() {
+        if (data.contains("data.mapid")) {
+            return (short) data.getInt("data.mapid");
+        } else {
+            return genMapId();
+        }
+    }
 
-	}
+    public static void deleteHopper(Hopper h) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(h.getLocation());
+        data.set(cloc, null);
+        saveData();
+    }
 
-	private static long last;
+    public static boolean isSellHopper(Location loc) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        return data.getBoolean(cloc + ".sellhopper", false);
+    }
 
-	private static void saveData() {
+    public static void toggleSellHopper(Player p, Location loc) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        String owner = data.getString(cloc + ".owner", "NONE");
 
-		if (System.currentTimeMillis() - last < 3000) {
-			return;
-		}
+        if (!(p.getUniqueId().toString().equals(owner) || p.hasPermission("lagassist.hopper.bypass"))) {
+            p.sendMessage(Main.PREFIX + "You can't toggle selling for a hopper not owned by you");
+            return;
+        }
 
-		last = System.currentTimeMillis();
+        String percentage = "§e" + SellHoppers.getMultiplierPercentage(Bukkit.getOfflinePlayer(p.getUniqueId())) + "%";
 
-		Bukkit.getScheduler().runTaskAsynchronously(Main.p, () -> {
-			try {
-				data.save(dataf);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
-	}
+        if (isSellHopper(loc)) {
+            data.set(cloc + ".sellhopper", false);
+            p.sendMessage(Main.PREFIX + "This sellhopper has been §2disabled§f at " + percentage + "§f.");
+        } else {
+            data.set(cloc + ".sellhopper", true);
+            p.sendMessage(Main.PREFIX + "This sellhopper has been §aenabled§f at " + percentage + "§f.");
+        }
 
-	private static short genMapId() {
-		MapView newe = Bukkit.createMap(Bukkit.getWorlds().get(0));
-		short mapid = (short) Reflection.getId(newe);
-		data.set("data.mapid", mapid);
-		saveData();
-		return mapid;
-	}
+        saveData();
+    }
 
-	public static short getMapId() {
-		if (data.contains("data.mapid")) {
-			int mapid = data.getInt("data.mapid");
-//			if (Reflection.getMapView(mapid) == null) {
-//				return genMapId();
-//			} else {
-//				return mapid;
-//			}
-			return (short) mapid;
-		} else {
-			return genMapId();
-		}
+    public static OfflinePlayer getOwningPlayer(Location loc) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        if (data.contains(cloc + ".owner")) {
+            return Bukkit.getOfflinePlayer(UUID.fromString(Objects.requireNonNull(data.getString(cloc + ".owner"))));
+        }
+        return null;
+    }
 
-	}
+    public static void setOwningPlayer(Location loc, OfflinePlayer owner) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        data.set(cloc + ".owner", owner.getUniqueId().toString());
+        saveData();
+    }
 
-	public static void deleteHopper(Hopper h) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(h.getLocation());
+    public static Set<Material> getFilterWhitelist(Location loc) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        List<String> found = data.contains(cloc + ".materials") ? data.getStringList(cloc + ".materials") : null;
+        Set<Material> allowed = new HashSet<>();
 
-		data.set(cloc, null);
-		saveData();
-	}
+        if (found != null) {
+            for (String stg : found) {
+                allowed.add(Material.getMaterial(stg));
+            }
+        }
 
-	public static boolean isSellHopper(Location loc) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        return allowed;
+    }
 
-		return data.getBoolean(cloc + ".sellhopper", false);
-	}
+    public static void saveFilterWhitelist(Location loc, Set<Material> mats) {
+        String cloc = "hoppers." + WorldMgr.serializeLocation(loc) + ".materials";
 
-	public static boolean toggleSellHopper(Player p, Location loc) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
+        if (mats == null) {
+            data.set(cloc, null);
+        } else {
+            List<String> allowed = new ArrayList<>();
+            for (Material mat : mats) {
+                allowed.add(mat.name());
+            }
+            data.set(cloc, allowed);
+        }
 
-		String owner = data.getString(cloc + ".owner", "NONE");
+        saveData();
+    }
 
-		if (!(p.getUniqueId().toString().equals(owner) || p.hasPermission("lagassist.hopper.bypass"))) {
-			p.sendMessage(Main.PREFIX + "You can't toggle selling for a hopper not owned by you");
-			return false;
-		}
+    public static void toggleAdvertising(CommandSender sender) {
+        boolean advertising = !data.getBoolean("disable-advertising", false);
+        data.set("disable-advertising", advertising);
+        sender.sendMessage(Main.PREFIX + "Advertising disabled: " + advertising);
+        saveData();
+    }
 
-		String percentage = "§e" + SellHoppers.getMultiplierPercentage(Bukkit.getOfflinePlayer(p.getUniqueId())) + "%";
-
-		if (isSellHopper(loc)) {
-			data.set(cloc + ".sellhopper", false);
-			p.sendMessage(Main.PREFIX + "This sellhopper has been §2disabled§f at " + percentage + "§f.");
-			saveData();
-			return true;
-		} else {
-			data.set(cloc + ".sellhopper", true);
-			p.sendMessage(Main.PREFIX + "This sellhopper has been §aenabled§f at " + percentage + "§f.");
-			saveData();
-			return true;
-		}
-	}
-
-	public static OfflinePlayer getOwningPlayer(Location loc) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
-
-		if (data.contains(cloc + ".owner")) {
-			return Bukkit.getOfflinePlayer(UUID.fromString(data.getString(cloc + ".owner")));
-		}
-
-		return null;
-	}
-
-	public static void setOwningPlayer(Location loc, OfflinePlayer owner) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
-
-		data.set(cloc + ".owner", owner.getUniqueId().toString());
-		saveData();
-	}
-
-	public static Set<Material> getFilterWhitelist(Location loc) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc);
-
-		List<String> found = null;
-
-		if (data.contains(cloc + ".materials")) {
-			found = data.getStringList(cloc + ".materials");
-		}
-
-		Set<Material> allowed = new HashSet<Material>();
-
-		if (found == null) {
-			return allowed;
-		}
-
-		for (String stg : found) {
-			allowed.add(Material.getMaterial(stg));
-		}
-
-		return allowed;
-	}
-
-	public static void saveFilterWhitelist(Location loc, Set<Material> mats) {
-		String cloc = "hoppers." + WorldMgr.serializeLocation(loc) + ".materials";
-
-		if (mats == null) {
-			data.set(cloc, null);
-			saveData();
-			return;
-		}
-
-		List<String> allowed = new ArrayList<String>();
-
-		for (Material mat : mats) {
-			allowed.add(mat.name());
-		}
-
-		data.set(cloc, allowed);
-		saveData();
-
-	}
-	
-	public static void toggleAdvertising(CommandSender sender) {
-		boolean advertising = !data.getBoolean("disable-advertising", false);
-		data.set("disable-advertising", advertising);
-		sender.sendMessage(Main.PREFIX + "Advertising disabled: " + advertising);
-		saveData();
-	}
-
-	public static boolean isAdvertising() {
-		return !data.getBoolean("disable-advertising");
-	}
+    public static boolean isAdvertising() {
+        return !data.getBoolean("disable-advertising");
+    }
 }

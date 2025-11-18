@@ -18,183 +18,154 @@ import org.bukkit.entity.Villager;
 
 public class StackComparer {
 
-	private static List<EntityComparator> comparators = new ArrayList<EntityComparator>();
+    private static final List<EntityComparator> comparators = new ArrayList<EntityComparator>();
 
-	public static void Enabler(boolean reload) {
-		EntityComparator sheep = (ent1, ent2) -> {
-			if (ent1 instanceof Sheep && ent2 instanceof Sheep) {
-				Sheep s1 = (Sheep) ent1;
-				Sheep s2 = (Sheep) ent2;
+    public static void Enabler(boolean reload) {
+        EntityComparator sheep = (ent1, ent2) -> {
+            if (ent1 instanceof Sheep s1 && ent2 instanceof Sheep s2) {
 
                 if (s1.getColor() != s2.getColor()) {
-					return false;
-				}
+                    return false;
+                }
 
 
-				try {
-					if(VersionMgr.isV_21Plus()){
-						return !((boolean) Reflection.runMethod(s1, "readyToBeSheared")) == !((boolean) Reflection.runMethod(s2, "readyToBeSheared"));
-					}
-					return (boolean) Reflection.runMethod(s1, "isSheared") == (boolean) Reflection.runMethod(s2, "isSheared");
-				} catch (Exception ignored) {}
-			}
-			return true;
-		};
+                try {
+                    if (VersionMgr.isV_21Plus()) {
+                        return !((boolean) Reflection.runMethod(s1, "readyToBeSheared")) == !((boolean) Reflection.runMethod(s2, "readyToBeSheared"));
+                    }
+                    return (boolean) Reflection.runMethod(s1, "isSheared") == (boolean) Reflection.runMethod(s2, "isSheared");
+                } catch (Exception ignored) {
+                }
+            }
+            return true;
+        };
 
-		EntityComparator slime = (ent1, ent2) -> {
-			if (ent1 instanceof Slime && ent2 instanceof Slime) {
-				Slime s1 = (Slime) ent1;
-				Slime s2 = (Slime) ent2;
+        EntityComparator slime = (ent1, ent2) -> {
+            if (ent1 instanceof Slime s1 && ent2 instanceof Slime s2) {
 
-				if (s1.getSize() != s2.getSize()) {
-					return false;
-				}
-			}
-			return true;
-		};
+                return s1.getSize() == s2.getSize();
+            }
+            return true;
+        };
 
-		EntityComparator pig = (ent1, ent2) -> {
-			if (ent1 instanceof Pig && ent2 instanceof Pig) {
-				Pig s1 = (Pig) ent1;
-				Pig s2 = (Pig) ent2;
+        EntityComparator pig = (ent1, ent2) -> {
+            if (ent1 instanceof Pig s1 && ent2 instanceof Pig s2) {
 
-				// So no mountable pigs stack.
-				if (s1.hasSaddle() || s2.hasSaddle()) {
-					return false;
-				}
-			}
-			return true;
-		};
+                // So no mountable pigs stack.
+                return !s1.hasSaddle() && !s2.hasSaddle();
+            }
+            return true;
+        };
 
-		EntityComparator villager = (ent1, ent2) -> {
-			if (ent1 instanceof Villager && ent2 instanceof Villager) {
-				Villager s1 = (Villager) ent1;
-				Villager s2 = (Villager) ent2;
+        EntityComparator villager = (ent1, ent2) -> {
+            if (ent1 instanceof Villager s1 && ent2 instanceof Villager s2) {
 
-				if (s1.getProfession() != s2.getProfession()) {
-					return false;
-				}
-			}
-			return true;
-		};
+                return s1.getProfession() == s2.getProfession();
+            }
+            return true;
+        };
 
-		EntityComparator horse = (ent1, ent2) -> {
-			if (ent1 instanceof Horse && ent2 instanceof Horse) {
-				Horse s1 = (Horse) ent1;
-				Horse s2 = (Horse) ent2;
+        EntityComparator horse = (ent1, ent2) -> {
+            if (ent1 instanceof Horse s1 && ent2 instanceof Horse s2) {
 
-				if (s1.getColor() != s2.getColor()) {
-					return false;
-				}
+                if (s1.getColor() != s2.getColor()) {
+                    return false;
+                }
 
-				if (s2.getStyle() != s2.getStyle()) {
-					return false;
-				}
-			}
-			return true;
-		};
+                return s2.getStyle() == s2.getStyle();
+            }
+            return true;
+        };
 
-		try {
-			EntityComparator abstracthorse = (ent1, ent2) -> {
-				if (ent1 instanceof AbstractHorse && ent2 instanceof AbstractHorse) {
-					AbstractHorse s1 = (AbstractHorse) ent1;
-					AbstractHorse s2 = (AbstractHorse) ent2;
+        try {
+            EntityComparator abstracthorse = (ent1, ent2) -> {
+                if (ent1 instanceof AbstractHorse s1 && ent2 instanceof AbstractHorse s2) {
 
-					if (s1.getDomestication() != s2.getDomestication()) {
-						return false;
-					}
+                    if (s1.getDomestication() != s2.getDomestication()) {
+                        return false;
+                    }
 
-					if (s2.getJumpStrength() != s2.getJumpStrength()) {
-						return false;
-					}
-				}
-				return true;
-			};
-			comparators.add(abstracthorse);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+                    return s2.getJumpStrength() == s2.getJumpStrength();
+                }
+                return true;
+            };
+            comparators.add(abstracthorse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		try {
-			EntityComparator ageable = (ent1, ent2) -> {
-				if (ent1 instanceof Ageable && ent2 instanceof Ageable) {
-					Ageable s1 = (Ageable) ent1;
-					Ageable s2 = (Ageable) ent2;
+        try {
+            EntityComparator ageable = (ent1, ent2) -> {
+                if (ent1 instanceof Ageable s1 && ent2 instanceof Ageable s2) {
 
-					if (s1.isAdult() != s2.isAdult()) {
-						return false;
-					}
-				}
-				return true;
-			};
-			if (Main.config.getBoolean("smart-stacker.technical.comparison.ageable")) {
-				comparators.add(ageable);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+                    return s1.isAdult() == s2.isAdult();
+                }
+                return true;
+            };
+            if (Main.config.getBoolean("smart-stacker.technical.comparison.ageable")) {
+                comparators.add(ageable);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		EntityComparator tameable = (ent1, ent2) -> {
-			if (ent1 instanceof Tameable && ent2 instanceof Tameable) {
-				Tameable s1 = (Tameable) ent1;
-				Tameable s2 = (Tameable) ent2;
+        EntityComparator tameable = (ent1, ent2) -> {
+            if (ent1 instanceof Tameable s1 && ent2 instanceof Tameable s2) {
 
-				if (s1.isTamed() != s2.isTamed()) {
-					return false;
-				}
-			}
-			return true;
-		};
+                return s1.isTamed() == s2.isTamed();
+            }
+            return true;
+        };
 
-		comparators.clear();
+        comparators.clear();
 
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.sheep")) {
-			comparators.add(sheep);
-		}
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.pig")) {
-			comparators.add(pig);
-		}
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.slime")) {
-			comparators.add(slime);
-		}
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.villager")) {
-			comparators.add(villager);
-		}
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.tameable")) {
-			comparators.add(tameable);
-		}
-		if (Main.config.getBoolean("smart-stacker.technical.comparison.horse")) {
-			comparators.add(horse);
-		}
-	}
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.sheep")) {
+            comparators.add(sheep);
+        }
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.pig")) {
+            comparators.add(pig);
+        }
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.slime")) {
+            comparators.add(slime);
+        }
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.villager")) {
+            comparators.add(villager);
+        }
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.tameable")) {
+            comparators.add(tameable);
+        }
+        if (Main.config.getBoolean("smart-stacker.technical.comparison.horse")) {
+            comparators.add(horse);
+        }
+    }
 
-	public static boolean isSimilar(Entity ent1, Entity ent2) {
-		if (ent1 == null || ent2 == null) {
-			return false;
-		}
+    public static boolean isSimilar(Entity ent1, Entity ent2) {
+        if (ent1 == null || ent2 == null) {
+            return false;
+        }
 
-		if (ent1.isDead() || ent2.isDead()) {
-			return false;
-		}
+        if (ent1.isDead() || ent2.isDead()) {
+            return false;
+        }
 
-		if (ent1.getType() != ent2.getType()) {
-			return false;
-		}
+        if (ent1.getType() != ent2.getType()) {
+            return false;
+        }
 
-		for (EntityComparator comp : comparators) {
-			if (!comp.isSimilar(ent1, ent2)) {
-				return false;
-			}
-		}
+        for (EntityComparator comp : comparators) {
+            if (!comp.isSimilar(ent1, ent2)) {
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	@FunctionalInterface
-	public interface EntityComparator {
+    @FunctionalInterface
+    public interface EntityComparator {
 
-		public boolean isSimilar(Entity ent1, Entity ent2);
+        public boolean isSimilar(Entity ent1, Entity ent2);
 
-	}
+    }
 
 }

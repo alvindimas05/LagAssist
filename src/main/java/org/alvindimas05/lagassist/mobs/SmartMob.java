@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 
-import org.alvindimas05.lagassist.utils.PaperOnly;
-import org.alvindimas05.lagassist.utils.WorldMgr;
+import org.alvindimas05.lagassist.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -18,22 +17,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 import org.alvindimas05.lagassist.Main;
 import org.alvindimas05.lagassist.stacker.StackManager;
-import org.alvindimas05.lagassist.utils.VersionMgr;
 
 public class SmartMob implements Listener {
 
-	EventPriority prio;
-	
-	private static SplittableRandom rand = new SplittableRandom();
+	private static final SplittableRandom rand = new SplittableRandom();
 
 	public static boolean Spawning;
-	public static List<String> mobs = new ArrayList<String>();
+	public static List<String> mobs = new ArrayList<>();
 	public static boolean Whitelist;
 
 	private static boolean nogravityastand;
@@ -43,8 +38,8 @@ public class SmartMob implements Listener {
 		if (!reload) {
 			Main.p.getServer().getPluginManager().registerEvents(new SmartMob(), Main.p);
 		}
-		
-		Bukkit.getLogger().info("    §e[§a✔§e] §fSmart Mob Tools.");
+
+		CustomLogger.info("    §e[§a✔§e] §fSmart Mob Tools.");
 		mobs = Main.config.getStringList("smart-cleaner.mobs");
 
 		Whitelist = Main.config.getBoolean("smart-cleaner.whitelist");
@@ -52,39 +47,56 @@ public class SmartMob implements Listener {
 
 		nogravityastand = Main.config.getBoolean("mob-manager.no-armorstand-gravity");
 		simpleslime = Main.config.getBoolean("mob-manager.simple-slime");
-
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void MobCuller() {
 		for (World w : Bukkit.getWorlds()) {
 			if (!WorldMgr.blacklist.contains(w.getName())) {
-				for (Entity e : w.getEntities()) {
-					if (Whitelist) {
-						if (isRemovable(e)) {
-							e.remove();
-						}
-					} else if (mobs.contains(e.getType().toString())) {
-						if (isRemovable(e)) {
-							e.remove();
-						}
-					}
+
+				if (ServerType.isFolia()) {
+					Bukkit.getRegionScheduler().execute(Main.p, w, 0, 0, () -> {
+						removeMobs(w);
+					});
+				} else {
+					removeMobs(w);
 				}
 			}
 		}
 	}
-	
+
+	private static void removeMobs(World w) {
+		for (Entity e : w.getEntities()) {
+			if (Whitelist) {
+				if (isRemovable(e)) {
+					e.remove();
+				}
+			} else if (mobs.contains(e.getType().toString())) {
+				if (isRemovable(e)) {
+					e.remove();
+				}
+			}
+		}
+	}
+
 	private static boolean isRemovable(Entity ent) {
-		String name = ent.getCustomName();
-		
-		if (VersionMgr.hasPassengers(ent)) return false;
-		
-		if (name != null && !StackManager.isStacked(ent)) return false;
-		
 		if (ent instanceof Player) return false;
-		
-		return true;
-		
+		if (VersionMgr.hasPassengers(ent)) return false;
+
+		if (ServerType.isFolia()) {
+			final boolean[] removable = {false};
+
+			Bukkit.getRegionScheduler().execute(Main.p, ent.getWorld(), ent.getLocation().getBlockX() >> 4, ent.getLocation().getBlockZ() >> 4, () -> {
+				String name = ent.getCustomName();
+				if (name == null || StackManager.isStacked(ent)) {
+					removable[0] = true;
+				}
+			});
+
+			return removable[0];
+		}
+
+		String name = ent.getCustomName();
+		return name == null || StackManager.isStacked(ent);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -104,34 +116,35 @@ public class SmartMob implements Listener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void SpawnListener(CreatureSpawnEvent e) {
-		
 		if (!WorldMgr.blacklist.contains(e.getEntity().getWorld().getName())) {
 			return;
 		}
-		
+
 		if (!Spawning) {
 			e.setCancelled(true);
 			return;
 		}
+
 		Entity ent = e.getEntity();
-		SpawnReason reason = e.getSpawnReason();
 
-		if (nogravityastand && (ent.getType() == EntityType.ARMOR_STAND)) {
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Main.p, () -> {
-
-                if (Main.paper) {
-                    PaperOnly.freezeArmorstand((ArmorStand) e.getEntity());
-                } else {
-                    ent.setGravity(false);
-
-                }
-            }, 40L);
+		if (nogravityastand && ent.getType() == EntityType.ARMOR_STAND) {
+			if (ServerType.isFolia()) {
+				Bukkit.getGlobalRegionScheduler().execute(Main.p, () -> {
+					if (Main.paper) {
+						PaperOnly.freezeArmorstand((ArmorStand) e.getEntity());
+					} else {
+						ent.setGravity(false);
+					}
+				});
+			} else {
+				Bukkit.getScheduler().runTaskLater(Main.p, () -> {
+					if (Main.paper) {
+						PaperOnly.freezeArmorstand((ArmorStand) e.getEntity());
+					} else {
+						ent.setGravity(false);
+					}
+				}, 40L);
+			}
 		}
-
-		if (simpleslime && (reason == SpawnReason.SLIME_SPLIT) && ent.getType() == EntityType.SLIME) {
-			e.setCancelled(true);
-		}
-
 	}
-
 }

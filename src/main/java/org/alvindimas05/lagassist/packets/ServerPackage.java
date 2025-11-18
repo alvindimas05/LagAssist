@@ -48,13 +48,13 @@ public enum ServerPackage {
     }
 
 
-	@Override
-	public String toString() {
-		return path;
-	}
+    @Override
+    public String toString() {
+        return path;
+    }
 
-	public Class<?> getClass(String className) throws ClassNotFoundException {
-		return Class.forName(this.toString() + "." + className);
-	}
+    public Class<?> getClass(String className) throws ClassNotFoundException {
+        return Class.forName(this.toString() + "." + className);
+    }
 
 }

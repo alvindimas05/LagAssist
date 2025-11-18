@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.alvindimas05.lagassist.Main;
+import org.alvindimas05.lagassist.utils.CustomLogger;
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.json.simple.JSONArray;
@@ -19,171 +21,159 @@ import org.json.simple.JSONValue;
 
 public class SmartUpdater {
 
-	private static String updatesurl = "https://api.spiget.org/v2/resources/56399/updates?size=15&sort=-date";
-	private static String versionurl = "https://api.spiget.org/v2/resources/56399/versions?size=15&sort=-releaseDate";
+    private static final String updatesurl = "https://api.spiget.org/v2/resources/56399/updates?size=15&sort=-date";
+    private static final String versionurl = "https://api.spiget.org/v2/resources/56399/versions?size=15&sort=-releaseDate";
 
-	public static UpdateInfo ui = null;
+    public static UpdateInfo ui = null;
 
-	public static void Enabler() {
-		if (!Main.config.getBoolean("smart-updater.enabled")) {
-			return;
-		}
+    public static void Enabler() {
+        if (!Main.config.getBoolean("smart-updater.enabled")) {
+            return;
+        }
 
-		UpdateCondition.Enabler();
+        UpdateCondition.Enabler();
 
-		Bukkit.getScheduler().runTaskAsynchronously(Main.p, new Runnable() {
-			@Override
-			public void run() {
-				ui = getNextUpdate();
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().run(Main.p, task -> runUpdater());
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(Main.p, SmartUpdater::runUpdater);
+        }
+    }
 
-				if (ui == null) {
-					Bukkit.getLogger().info("§2§lLag§f§lAssist §e» §fYou are up to date with LagAssist.");
-					return;
-				}
+    private static void runUpdater() {
+        ui = getNextUpdate();
 
-				Bukkit.getLogger().info("§2§lLag§f§lAssist §e» §fWe found a newer LagAssist version:");
-				if (ui.isUnsafe()) {
-					Bukkit.getLogger().warning("§2§lLag§f§lAssist §e» §fThis version is considered Unsafe!");
-				}
-				Bukkit.getLogger().info("    §2[§e֍§2] §fVersion: " + ui.getVersion());
-				Bukkit.getLogger().info("    §2[§e֍§2] §fReviews: " + ((int) (ui.getRating() * 100)) / 100f + "§e★");
-				Bukkit.getLogger().info("    §2[§e֍§2] §fDownloads: " + ui.getDownloads());
-				Bukkit.getLogger().info("    §2[§e֍§2] §fFor more info, use §2/lagassist changelog");
+        if (ui == null) {
+            CustomLogger.info("§2§lLag§f§lAssist §e» §fYou are up to date with LagAssist.");
+            return;
+        }
 
-			}
-		});
+        CustomLogger.info("§2§lLag§f§lAssist §e» §fWe found a newer LagAssist version:");
+        if (ui.isUnsafe()) {
+            CustomLogger.warning("§2§lLag§f§lAssist §e» §fThis version is considered Unsafe!");
+        }
+        CustomLogger.info("    §2[§e֍§2] §fVersion: " + ui.getVersion());
+        CustomLogger.info("    §2[§e֍§2] §fReviews: " + ((int) (ui.getRating() * 100)) / 100f + "§e★");
+        CustomLogger.info("    §2[§e֍§2] §fDownloads: " + ui.getDownloads());
+        CustomLogger.info("    §2[§e֍§2] §fFor more info, use §2/lagassist changelog");
+    }
 
-	}
+    private static UpdateInfo getNextUpdate() {
+        try {
+            URL uurl = new URL(updatesurl);
+            URL vurl = new URL(versionurl);
 
-	private static UpdateInfo getNextUpdate() {
-		try {
+            JSONArray updateData = getWebData(uurl);
+            JSONArray versionData = getWebData(vurl);
 
-			URL uurl = new URL(updatesurl);
-			URL vurl = new URL(versionurl);
+            if (updateData == null || versionData == null) {
+                return null;
+            }
 
-			JSONArray updateData = getWebData(uurl);
-			JSONArray versionData = getWebData(vurl);
+            Map<Long, UpdateInfo> updates = new HashMap<>();
+            Map<Long, UpdateInfo> filteredupdates = new HashMap<>();
 
-			if (updateData == null) {
-				return null;
-			}
-			if (versionData == null) {
-				return null;
-			}
+            for (Object updateDatum : updateData) {
+                JSONObject obj = (JSONObject) updateDatum;
 
-			Map<Long, UpdateInfo> updates = new HashMap<Long, UpdateInfo>();
-			Map<Long, UpdateInfo> filteredupdates = new HashMap<Long, UpdateInfo>();
+                String title = (String) obj.get("title");
+                String description = (String) obj.get("description");
+                long date = (long) obj.get("date");
+                long likes = (long) obj.get("likes");
 
-			// GET all update posts (update messages, etc) and create a rudimentary
-			// UpdateInfo.
-			for (int i = 0; i < updateData.size(); i++) {
-				JSONObject obj = (JSONObject) updateData.get(i);
+                UpdateInfo up = new UpdateInfo();
 
-				String title = (String) obj.get("title");
-				String description = (java.lang.String) obj.get("description");
-				long date = (long) obj.get("date");
-				long likes = (long) obj.get("likes");
+                up.setTitle(title);
+                up.setDescription(description);
+                up.setDate(date);
+                up.setLikes((int) likes);
 
-				UpdateInfo up = new UpdateInfo();
+                updates.put(date, up);
+            }
 
-				up.setTitle(title);
-				up.setDescription(description);
-				up.setDate(date);
-				up.setLikes((int) likes);
+            for (Object versionDatum : versionData) {
+                JSONObject obj = (JSONObject) versionDatum;
 
-				updates.put(date, up);
-			}
+                long date = (long) obj.get("releaseDate");
 
-			// Fill UpdateInfo with reviews and other useful information.
-			for (int i = 0; i < versionData.size(); i++) {
-				JSONObject obj = (JSONObject) versionData.get(i);
+                if (!updates.containsKey(date)) {
+                    continue;
+                }
 
-				long date = (long) obj.get("releaseDate");
+                String version = (String) obj.get("name");
+                long downloads = (long) obj.get("downloads");
+                double rating = Double.parseDouble(String.valueOf(((JSONObject) obj.get("rating")).get("average")));
+                long id = (long) obj.get("id");
 
-				if (!updates.containsKey(date)) {
-					continue;
-				}
+                UpdateInfo up = updates.get(date);
 
-				String version = (String) obj.get("name");
+                up.setId(id);
+                up.setVersion(version);
+                up.setRating((int) rating);
+                up.setDownloads((int) downloads);
 
-				long downloads = (long) obj.get("downloads");
-				double rating = Double.valueOf(String.valueOf(((JSONObject) obj.get("rating")).get("average")));
-				long id = (long) obj.get("id");
+                filteredupdates.put(date, up);
+            }
 
-				UpdateInfo up = updates.get(date);
+            LinkedHashMap<Long, UpdateInfo> sorted = filteredupdates.entrySet().stream()
+                    .sorted(Collections.reverseOrder(Map.Entry.comparingByKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue,
+                            LinkedHashMap::new));
 
-				up.setId(id);
-				up.setVersion(version);
-				up.setRating((int) rating);
-				up.setDownloads((int) downloads);
+            for (long key : sorted.keySet()) {
+                UpdateInfo up = updates.get(key);
 
-				filteredupdates.put(date, up);
-			}
+                if (UpdateCondition.shouldUpgrade(up)) {
+                    return up;
+                }
+            }
 
-			// Sort map and do other juicy stuff.
-			LinkedHashMap<Long, UpdateInfo> sorted = filteredupdates.entrySet().stream()
-					.sorted(Collections.reverseOrder(Map.Entry.comparingByKey()))
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue,
-							LinkedHashMap::new));
+        } catch (Exception e) {
+            e.printStackTrace();
+            CustomLogger.warning("§e[§a✖§e] §fCouldn't recognize Update data.");
+        }
+        return null;
+    }
 
-			for (long key : sorted.keySet()) {
-				UpdateInfo up = updates.get(key);
+    private static JSONArray getWebData(URL u) {
+        try (InputStream is = u.openStream()) {
+            return (JSONArray) JSONValue.parse(new InputStreamReader(is));
+        } catch (IOException e) {
+            CustomLogger.warning("§e[§a✖§e] §fCouldn't connect to Update Data.");
+        }
+        return null;
+    }
 
-				if (UpdateCondition.shouldUpgrade(up)) {
-					return up;
-				}
-			}
+    private static String getFormattedDesc() {
+        if (ui == null) {
+            return null;
+        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			Bukkit.getLogger().warning("§e[§a✖§e] §fCouldn't recognize Update data.");
-		}
-		return null;
-	}
+        return ui.getDescription().substring(0, Math.min(ui.getDescription().length(), 1000)).replace('\n', ' ');
+    }
 
-	private static JSONArray getWebData(URL u) {
-		InputStream is;
-		try {
-			is = u.openStream();
-			return (JSONArray) JSONValue.parse(new InputStreamReader(is));
-		} catch (IOException e) {
-			Bukkit.getLogger().warning("§e[§a✖§e] §fCouldn't connect to Update Data.");
-		}
-		return null;
-	}
+    public static void showChangelog(CommandSender s) {
+        if (ui == null) {
+            s.sendMessage("§2§lLag§f§lAssist §e» §fThere is no new recommended version available.");
+            return;
+        }
 
-	private static String getFormattedDesc() {
-		if (ui == null) {
-			return null;
-		}
+        String formatdesc = getFormattedDesc();
 
-		return ui.getDescription().substring(0, Math.min(ui.getDescription().length(), 1000)).replace('\n', ' ');
-
-	}
-
-	public static void showChangelog(CommandSender s) {
-		if (ui == null) {
-			s.sendMessage("§2§lLag§f§lAssist §e» §fThere is no new recommended version available.");
-			return;
-		}
-
-		String formatdesc = getFormattedDesc();
-
-		s.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛§f§l LAGASSIST CHANGELOG §2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
-		s.sendMessage("");
-		s.sendMessage("  §2✸ §fNew Version: §e" + ui.getVersion());
-		s.sendMessage("");
-		s.sendMessage("  §2✸ §fTitle:");
-		s.sendMessage(" §e" + ui.getTitle());
-		s.sendMessage("");
-		s.sendMessage("  §2✸ §fDescription:");
-		s.sendMessage(" §e" + formatdesc);
-		s.sendMessage("");
-		s.sendMessage("  §2✸ §fRating: §e" + ui.getRating() + "★");
-		s.sendMessage("  §2✸ §fDownloads: §e" + ui.getDownloads());
-		s.sendMessage("  §2✸ §fLikes: §e" + ui.getLikes());
-		s.sendMessage("");
-		s.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
-	}
-
+        s.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛§f§l LAGASSIST CHANGELOG §2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
+        s.sendMessage("");
+        s.sendMessage("  §2✸ §fNew Version: §e" + ui.getVersion());
+        s.sendMessage("");
+        s.sendMessage("  §2✸ §fTitle:");
+        s.sendMessage(" §e" + ui.getTitle());
+        s.sendMessage("");
+        s.sendMessage("  §2✸ §fDescription:");
+        s.sendMessage(" §e" + formatdesc);
+        s.sendMessage("");
+        s.sendMessage("  §2✸ §fRating: §e" + ui.getRating() + "★");
+        s.sendMessage("  §2✸ §fDownloads: §e" + ui.getDownloads());
+        s.sendMessage("  §2✸ §fLikes: §e" + ui.getLikes());
+        s.sendMessage("");
+        s.sendMessage("§2§l⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛");
+    }
 }

@@ -1,8 +1,7 @@
 package org.alvindimas05.lagassist.chunks;
 
 import org.alvindimas05.lagassist.Main;
-import org.alvindimas05.lagassist.utils.PaperOnly;
-import org.alvindimas05.lagassist.utils.WorldMgr;
+import org.alvindimas05.lagassist.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -11,91 +10,96 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import org.alvindimas05.lagassist.utils.VersionMgr;
-
 public class DynViewer implements Listener {
 
-	private static int maxChunks;
-	private static int maxView;
+    private static int maxChunks;
+    private static int maxView;
 
-	private static int currChunks = 0;
+    private static int currChunks = 0;
 
-	public static void Enabler(boolean reload) {
+    public static void Enabler(boolean reload) {
 
-		boolean enabled = Main.config.getBoolean("chunk-manager.enabled");
+        boolean enabled = Main.config.getBoolean("chunk-manager.enabled");
 
-		if (!enabled) {
-			return;
-		}
+        if (!enabled) {
+            return;
+        }
 
-		if (!Main.paper) {
-			Bukkit.getLogger().info("    §e[§a✖§e] §fChunkManager - No PaperSpigot found");
-			return;
-		}
+        if (!Main.paper) {
+            CustomLogger.info("    §e[§a✖§e] §fChunkManager - No PaperSpigot found");
+            return;
+        }
 
-		maxChunks = Main.config.getInt("chunk-manager.max-chunks");
-		maxView = Main.config.getInt("chunk-manager.max-view");
+        maxChunks = Main.config.getInt("chunk-manager.max-chunks");
+        maxView = Main.config.getInt("chunk-manager.max-view");
 
-		if (!reload) {
-			Main.p.getServer().getPluginManager().registerEvents(new DynViewer(), Main.p);
+        if (!reload) {
+            Main.p.getServer().getPluginManager().registerEvents(new DynViewer(), Main.p);
 
-			runTask();
-		}
+            runTask();
+        }
 
-		Bukkit.getLogger().info("    §e[§a✔§e] §fChunkManager.");
+        CustomLogger.info("    §e[§a✔§e] §fChunkManager.");
 
-	}
+    }
 
-	private static void runTask() {
-		Bukkit.getScheduler().runTaskTimer(Main.p, () -> setViews(), 0, 600);
-	}
+    private static void runTask() {
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().runAtFixedRate(Main.p, task -> setViews(), 1, 600); // Fixed line
+        } else {
+            Bukkit.getScheduler().runTaskTimer(Main.p, DynViewer::setViews, 0, 600);
+        }
+    }
 
-	public static void setViews() {
+    public static void setViews() {
 
-		Main.sendDebug("Attempting to set dynamic view distance...", 1);
-		
-		// Get a value that is at least the minimum view distance and at max the spigot
-		// view distance.
+        Main.sendDebug("Attempting to set dynamic view distance...", 1);
 
-		int pl = Bukkit.getOnlinePlayers().size();
+        // Get a value that is at least the minimum view distance and at max the spigot
+        // view distance.
 
-		if (pl == 0) {
-			return;
-		}
+        int pl = Bukkit.getOnlinePlayers().size();
 
-		int vd = (int) Math.sqrt(maxChunks / pl / 4);
+        if (pl == 0) {
+            return;
+        }
 
-		int newchunks = Math.max(Math.min(maxView, vd), Bukkit.getViewDistance());
+        int vd = (int) Math.sqrt((double) maxChunks / pl / 4);
 
-		if (currChunks == newchunks) {
-			return;
-		}
+        int newchunks = Math.max(Math.min(maxView, vd), Bukkit.getViewDistance());
 
-		currChunks = newchunks;
+        if (currChunks == newchunks) {
+            return;
+        }
 
-		for (World w : Bukkit.getWorlds()) {
-			if (WorldMgr.blacklist.contains(w.getName())) {
-				continue;
-			}
-			
-			PaperOnly.setViewDistance(w, currChunks);
-		}
-	}
+        currChunks = newchunks;
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	private void onJoin(PlayerJoinEvent e) {
-		Player p = e.getPlayer();
+        for (World w : Bukkit.getWorlds()) {
+            if (WorldMgr.blacklist.contains(w.getName())) {
+                continue;
+            }
 
-		Main.sendDebug("Join detected for " + p.getName(), 1);
-		
-		if (VersionMgr.isNewMaterials()) {
-			Main.sendDebug("Is new materials in dynviewer for " + p.getName() + ". Returning... ", 1);
-			return;
-		}
-		
-		// TODO: FIX Dynamic view
-		Bukkit.getScheduler().runTaskLater(Main.p, () -> PaperOnly.setViewDistance(p, currChunks), 25);
+            PaperOnly.setViewDistance(w, currChunks);
+        }
+    }
 
-	}
+    @EventHandler(priority = EventPriority.LOWEST)
+    private void onJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+
+        Main.sendDebug("Join detected for " + p.getName(), 1);
+
+        if (VersionMgr.isNewMaterials()) {
+            Main.sendDebug("Is new materials in dynviewer for " + p.getName() + ". Returning... ", 1);
+            return;
+        }
+
+        Runnable task = () -> PaperOnly.setViewDistance(p, currChunks);
+        if (ServerType.isFolia()) {
+            p.getScheduler().runDelayed(Main.p, scheduledTask -> task.run(), null, 25);
+        } else {
+            Bukkit.getScheduler().runTaskLater(Main.p, task, 25);
+        }
+    }
 
 }

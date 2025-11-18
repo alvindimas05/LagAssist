@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.alvindimas05.lagassist.maps.TpsRender;
 import org.alvindimas05.lagassist.minebench.SpecsGetter;
+import org.alvindimas05.lagassist.utils.CustomLogger;
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.alvindimas05.lagassist.utils.VersionMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,140 +21,115 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 public class MonTools implements Listener {
 
     public static ItemStack mapitem;
     public static ItemMeta mapitemmeta;
 
-    public static List<UUID> actionmon = new ArrayList<>();
-    public static List<UUID> mapusers = new ArrayList<>();
-    private static DecimalFormat format = new DecimalFormat("#0.00");
+    public static final List<UUID> actionmon = new ArrayList<>();
+    public static final List<UUID> mapusers = new ArrayList<>();
+    private static final DecimalFormat format = new DecimalFormat("#0.00");
 
-    private static String stbmsg = Main.config.getString("stats-bar.message");
-    private static int stbinterv = Main.config.getInt("stats-bar.tps-interval");
-    private static int stbshowdl = Main.config.getInt("stats-bar.show-delay");
+    private static final String stbmsg = Main.config.getString("stats-bar.message");
+    private static final int stbinterv = Main.config.getInt("stats-bar.tps-interval");
+    private static final int stbshowdl = Main.config.getInt("stats-bar.show-delay");
 
     public static void Enabler(boolean reload) {
         if (!reload) {
             Main.p.getServer().getPluginManager().registerEvents(new MonTools(), Main.p);
         }
 
-        Bukkit.getLogger().info("    §e[§a✔§e] §fMapVisualizer.");
-
-        if (VersionMgr.isNewMaterials()) {
-            mapitem =  createMapItem();
-            mapitemmeta = mapitem.getItemMeta();
-
-            mapitemmeta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
-            mapitem.setItemMeta(mapitemmeta);
-
-            int mapid = getMapId(mapitem);
-            if(mapid != -1){
-                MapView view = Reflection.getMapView(mapid);
-                if (view != null) {
-                    view.getRenderers().clear();
-                    view.addRenderer(new TpsRender());
-                }
-            } else {
-                Bukkit.getLogger().warning(Main.PREFIX + "Can't find Map ID on Map Monitor");
-            }
-        } else {
-            MapView map = Bukkit.createMap(Bukkit.getWorlds().get(0));
-            mapitem = createMapItem(map);
-            mapitemmeta = mapitem.getItemMeta();
-
-            map.getRenderers().clear();
-            map.addRenderer(new TpsRender());
-        }
-
+        CustomLogger.info("    §e[§a✔§e] §fMapVisualizer.");
+        initializeMap();
         StatsBar();
     }
 
-    // For older version (1.13 and below)
-    private static ItemStack createMapItem(MapView map) {
-        ItemStack mapItem = new ItemStack(Material.MAP, 1, getMapId(map));
+    private static void initializeMap() {
+        mapitem = createMapItem();
+        mapitemmeta = mapitem.getItemMeta();
 
-        MapMeta meta = (MapMeta) mapItem.getItemMeta();
-        meta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
-        mapItem.setItemMeta(meta);
-        return mapItem;
+        mapitemmeta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
+        mapitem.setItemMeta(mapitemmeta);
+
+        MapView mapView = Bukkit.createMap(Bukkit.getWorlds().getFirst());
+        mapView.getRenderers().clear();
+        mapView.addRenderer(new TpsRender());
+
+        MapMeta mapMeta = (MapMeta) mapitem.getItemMeta();
+        mapMeta.setMapView(mapView);
+        mapitem.setItemMeta(mapMeta);
     }
 
     private static ItemStack createMapItem() {
         ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
-
         MapMeta meta = (MapMeta) mapItem.getItemMeta();
         meta.setDisplayName("§2§lLag§f§lAssist §e§lMonitor");
-        meta.setMapView(Bukkit.getMap(0));
         mapItem.setItemMeta(meta);
         return mapItem;
     }
 
-    // For older version (1.13 and below)
-    private static short getMapId(MapView map){
-        try {
-            return (short) Class.forName("org.bukkit.map.MapView").getMethod("getId").invoke(map);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private static int getMapId(ItemStack mapItem) {
-        if (mapItem == null) {
-            return -1;
-        }
-        ItemMeta meta = mapItem.getItemMeta();
-        if (meta instanceof MapMeta) {
-            MapMeta mapMeta = (MapMeta) meta;
-            if (mapMeta.hasMapView()) {
-                return mapMeta.getMapView().getId();
-            }
-        }
-        return -1;
-    }
-
     public static void StatsBar() {
-        Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
-            if (actionmon.isEmpty()) {
-                return;
-            }
+        long delay = stbshowdl;
+        long period = stbshowdl;
 
-            List<Player> onlinePlayers = actionmon.stream()
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().runAtFixedRate(Main.p, task -> updateStatsBar(), delay, period);
+        } else {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    updateStatsBar();
+                }
+            }.runTaskTimer(Main.p, delay, period);
+        }
+    }
+
+    private static void updateStatsBar() {
+        if (actionmon.isEmpty()) return;
+
+        List<Player> onlinePlayers = actionmon.stream()
                 .map(Bukkit::getPlayer)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
 
-            if (onlinePlayers.isEmpty()) {
-                return;
+        if (onlinePlayers.isEmpty()) return;
+
+        double tpsraw = (ExactTPS.getTPS(10) > 20) ? 20 : ExactTPS.getTPS(stbinterv);
+        Runnable task = getRunnable(tpsraw, onlinePlayers);
+
+        if (ServerType.isFolia()) {
+            Bukkit.getAsyncScheduler().runNow(Main.p, scheduledTask -> task.run());
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(Main.p, task);
+        }
+    }
+
+    private static @NotNull Runnable getRunnable(double tpsraw, List<Player> onlinePlayers) {
+        String chunks = String.valueOf(getChunkCount());
+        String ents = String.valueOf(getEntCount());
+
+        return () -> {
+            String tps = formatTPS(tpsraw);
+            String message = ChatColor.translateAlternateColorCodes('&',
+                    stbmsg.replace("{TPS}", tps)
+                            .replace("{MEM}", format.format(SpecsGetter.FreeRam() / 1024))
+                            .replace("{CHKS}", chunks)
+                            .replace("{ENT}", ents));
+
+            for (Player p : onlinePlayers) {
+                Reflection.sendAction(p, message);
             }
+        };
+    }
 
-            double tpsraw = (ExactTPS.getTPS(10) > 20) ? 20 : ExactTPS.getTPS(stbinterv);
-            String chunks = String.valueOf(getChunkCount());
-            String ents = String.valueOf(getEntCount());
 
-            Bukkit.getScheduler().runTaskAsynchronously(Main.p, () -> {
-                String tps;
-                if (tpsraw > 18) {
-                    tps = "§a" + format.format(tpsraw);
-                } else if (tpsraw > 15) {
-                    tps = "§e" + format.format(tpsraw);
-                } else {
-                    tps = "§2" + format.format(tpsraw);
-                }
-
-                String message = ChatColor.translateAlternateColorCodes('&',
-                    stbmsg.replaceAll("\\{TPS\\}", tps)
-                        .replaceAll("\\{MEM\\}", format.format(SpecsGetter.FreeRam() / 1024))
-                        .replaceAll("\\{CHKS\\}", chunks)
-                        .replaceAll("\\{ENT\\}", ents));
-
-                for (Player p : onlinePlayers) {
-                    Reflection.sendAction(p, message);
-                }
-            });
-        }, stbshowdl, stbshowdl);
+    private static String formatTPS(double tpsraw) {
+        if (tpsraw > 18) return "§a" + format.format(tpsraw);
+        if (tpsraw > 15) return "§e" + format.format(tpsraw);
+        return "§2" + format.format(tpsraw);
     }
 
     public static int getEntCount() {
@@ -163,7 +140,6 @@ public class MonTools implements Listener {
         return Bukkit.getWorlds().stream().mapToInt(world -> world.getLoadedChunks().length).sum();
     }
 
-
     @EventHandler
     public void onSlotChange(PlayerItemHeldEvent e) {
         Player p = e.getPlayer();
@@ -171,73 +147,35 @@ public class MonTools implements Listener {
         ItemStack old = p.getInventory().getItem(e.getPreviousSlot());
         ItemStack nw = p.getInventory().getItem(e.getNewSlot());
 
-        if (runNew(nw, p)) {
-            return;
-        }
+        if (runNew(nw, p)) return;
         runOld(old, p);
     }
 
     public static void giveMap(Player p) {
         PlayerInventory inv = p.getInventory();
         int slot = inv.getHeldItemSlot();
-
         inv.setItem(slot, MonTools.mapitem);
 
-        UUID UUID = p.getUniqueId();
-
-        if (!mapusers.contains(UUID)) {
-            mapusers.add(UUID);
-        }
+        UUID uuid = p.getUniqueId();
+        if (!mapusers.contains(uuid)) mapusers.add(uuid);
     }
 
     private static void runOld(ItemStack old, Player p) {
-        if (old == null) {
-            return;
-        }
-
-        if (!old.hasItemMeta()) {
-            return;
-        }
+        if (old == null || !old.hasItemMeta()) return;
         ItemMeta ometa = old.getItemMeta();
-        if (!ometa.hasDisplayName()) {
-            return;
-        }
-        if (!ometa.getDisplayName().equals(mapitemmeta.getDisplayName())) {
-            return;
-        }
+        if (!ometa.hasDisplayName() || !ometa.getDisplayName().equals(mapitemmeta.getDisplayName())) return;
 
-        UUID UUID = p.getUniqueId();
-
-        if (!mapusers.contains(UUID)) {
-            mapusers.add(UUID);
-        }
+        UUID uuid = p.getUniqueId();
+        if (!mapusers.contains(uuid)) mapusers.add(uuid);
     }
 
     private static boolean runNew(ItemStack nw, Player p) {
-        if (!p.hasPermission("lagassist.use")) {
-            return false;
-        }
-
-        if (nw == null) {
-            return false;
-        }
-
-        if (!nw.hasItemMeta()) {
-            return false;
-        }
+        if (!p.hasPermission("lagassist.use") || nw == null || !nw.hasItemMeta()) return false;
         ItemMeta nwmeta = nw.getItemMeta();
-        if (!nwmeta.hasDisplayName()) {
-            return false;
-        }
-        if (!nwmeta.getDisplayName().equals(mapitemmeta.getDisplayName())) {
-            return false;
-        }
+        if (!nwmeta.hasDisplayName() || !nwmeta.getDisplayName().equals(mapitemmeta.getDisplayName())) return false;
 
-        UUID UUID = p.getUniqueId();
-
-        if (!mapusers.contains(UUID)) {
-            mapusers.add(UUID);
-        }
+        UUID uuid = p.getUniqueId();
+        if (!mapusers.contains(uuid)) mapusers.add(uuid);
         return true;
     }
 }

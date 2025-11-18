@@ -1,161 +1,156 @@
 package org.alvindimas05.lagassist.microfeatures;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import org.alvindimas05.lagassist.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
+import org.alvindimas05.lagassist.utils.CustomLogger;
+import org.alvindimas05.lagassist.utils.ServerType;
+
+import org.bukkit.*;
+import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
-@SuppressWarnings("deprecation")
 public class MicroManager implements Listener {
 
-	public static void Enabler(boolean reload) {
-		Bukkit.getLogger().info("    §e[§a✔§e] §fMicroFeatures.");
+    private static final List<BlockState> breakables = new ArrayList<>();
+    private static final List<BlockFace> growablefaces = Arrays.asList(
+            BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP
+    );
+    private static final Map<Player, Integer> intervals = new WeakHashMap<>();
 
-		if (!reload) {
-			runTask();
-		}
+    public static void enable(boolean reload) {
+        CustomLogger.info("    §e[§a✔§e] §fMicroFeatures.");
 
-		Main.p.getServer().getPluginManager().registerEvents(new MicroManager(), Main.p);
-		Main.p.getServer().getPluginManager().registerEvents(new GrowableStack(), Main.p);
-	}
+        if (!reload) {
+            runTask();
+        }
 
-	private static void runTask() {
-		Bukkit.getScheduler().runTaskTimer(Main.p, () -> {
-			for (BlockState b : breakables) {
-				b.getBlock().breakNaturally();
-				b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getBlockData());
-			}
+        Main.p.getServer().getPluginManager().registerEvents(new MicroManager(), Main.p);
+        Main.p.getServer().getPluginManager().registerEvents(new GrowableStack(), Main.p);
+    }
 
-			breakables.clear();
-			
-			for(Player p : intervals.keySet()) {
-				intervals.compute(p, (key, value) -> value - 5 < 0 ? null : value-5);
-			}
+    private static void runTask() {
+        long delay = 5L;
+        long period = 5L;
 
-		}, 5, 5);
-	}
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().runAtFixedRate(Main.p, task -> executeTask(), delay, period);
+        } else {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    executeTask();
+                }
+            }.runTaskTimer(Main.p, delay, period);
+        }
+    }
 
-	private static List<BlockState> breakables = new ArrayList<>();
-	private static final List<BlockFace> growablefaces = Arrays.asList(BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH,
-			BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP);
+    private static void executeTask() {
+        for (BlockState b : breakables) {
+            b.getBlock().breakNaturally();
+            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getBlockData());
+        }
 
-	public <T> void onGrowableGrow(T e) {
-		if (!Main.config.getBoolean("microfeatures.optimize-growable-farms.enable")) {
-			return;
-		}
+        breakables.clear();
 
-		BlockState b = null;
-		if(e instanceof BlockGrowEvent){
-			if (((BlockGrowEvent) e).isCancelled()) {
-				return;
-			}
+        for (Player p : new HashSet<>(intervals.keySet())) {
+            intervals.compute(p, (key, value) -> (value == null || value - 5 < 0) ? null : value - 5);
+        }
+    }
 
-			b = ((BlockGrowEvent) e).getNewState();
-		}
-		if(e instanceof BlockSpreadEvent){
-			if (((BlockSpreadEvent) e).isCancelled()) {
-				return;
-			}
+    public <T> void onGrowableGrow(T e) {
+        if (!Main.config.getBoolean("microfeatures.optimize-growable-farms.enable")) {
+            return;
+        }
 
-			b = ((BlockSpreadEvent) e).getNewState();
-		}
-		assert b != null;
+        BlockState b = null;
+        if (e instanceof BlockGrowEvent) {
+            if (((BlockGrowEvent) e).isCancelled()) {
+                return;
+            }
+            b = ((BlockGrowEvent) e).getNewState();
+        }
+        if (e instanceof BlockSpreadEvent) {
+            if (((BlockSpreadEvent) e).isCancelled()) {
+                return;
+            }
+            b = ((BlockSpreadEvent) e).getNewState();
+        }
+        assert b != null;
 
-		Material mat = b.getType();
+        Material mat = b.getType();
 
-		if (!Main.config.getStringList("microfeatures.optimize-growable-farms.blocks").contains(mat.toString())) {
-			return;
-		}
+        if (!Main.config.getStringList("microfeatures.optimize-growable-farms.blocks").contains(mat.toString())) {
+            return;
+        }
 
-		for (BlockFace face : growablefaces) {
-			Block piston = b.getBlock().getRelative(face);
-			if(piston.getType() != Material.PISTON) continue;
+        for (BlockFace face : growablefaces) {
+            Block piston = b.getBlock().getRelative(face);
+            if (piston.getType() != Material.PISTON) continue;
 
-			//Block frontBlock = piston.getRelative(piston.getFace(b.getBlock()).getOppositeFace());
-			BlockData blockData = piston.getBlockData();
-			if (blockData instanceof Directional) {
-				Directional directional = (Directional) blockData;
-				BlockFace facing = directional.getFacing();
-				if (facing != face.getOppositeFace()) {
-					continue;
-				}
-			}
+            BlockData blockData = piston.getBlockData();
+            if (blockData instanceof Directional directional) {
+                BlockFace facing = directional.getFacing();
+                if (facing != face.getOppositeFace()) {
+                    continue;
+                }
+            }
 
-			breakables.add(b);
+            breakables.add(b);
+            return;
+        }
+    }
 
-			return;
-		}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockGrow(BlockGrowEvent e) {
+        onGrowableGrow(e);
+    }
 
-	}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockSpread(BlockSpreadEvent e) {
+        onGrowableGrow(e);
+    }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onBlockGrow(BlockGrowEvent e) {
-		onGrowableGrow(e);
-	}
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onRightClick(PlayerInteractEvent e) {
+        if (!Main.config.getBoolean("microfeatures.click-spam-fix.enable")) {
+            return;
+        }
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onBlockSpread(BlockSpreadEvent e) {
-		onGrowableGrow(e);
-	}
+        if (e.isCancelled()) {
+            return;
+        }
 
-	private static Map<Player, Integer> intervals = new WeakHashMap<>();
+        Block b = e.getClickedBlock();
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onRightClick(PlayerInteractEvent e) {
-		if (!Main.config.getBoolean("microfeatures.click-spam-fix.enable")) {
-			return;
-		}
+        if (b == null) {
+            return;
+        }
 
-		if (e.isCancelled()) {
-			return;
-		}
+        Material mat = b.getType();
 
-		Block b = e.getClickedBlock();
+        if (!Main.config.getStringList("microfeatures.click-spam-fix.blocks").contains(mat.toString())) {
+            return;
+        }
 
-		if (b == null) {
-			return;
-		}
+        Player p = e.getPlayer();
+        int increment = Main.config.getInt("microfeatures.click-spam-fix.counter.increment");
+        int result = intervals.getOrDefault(p, 0);
 
-		Material mat = b.getType();
+        if (result > Main.config.getInt("microfeatures.click-spam-fix.counter.max")) {
+            e.setCancelled(true);
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.config.getString("microfeatures.click-spam-fix.counter.message"))));
+            return;
+        }
 
-		if (!Main.config.getStringList("microfeatures.click-spam-fix.blocks").contains(mat.toString())) {
-			return;
-		}
-
-		Player p = e.getPlayer();
-		
-		int increment =  Main.config.getInt("microfeatures.click-spam-fix.counter.increment");
-		
-		int result = intervals.getOrDefault(p, 0);
-		
-		if (result > Main.config.getInt("microfeatures.click-spam-fix.counter.max")) {
-			e.setCancelled(true);
-			p.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.config.getString("microfeatures.click-spam-fix.counter.message")));
-			return;
-		}
-		
-		intervals.compute(p, (key, counter) -> (counter == null ? increment : counter+increment));
-//
-//		System.out.println(increment + " " + result);
-	}
-
+        intervals.compute(p, (key, counter) -> (counter == null ? increment : counter + increment));
+    }
 }

@@ -3,6 +3,7 @@ package org.alvindimas05.lagassist.packets;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.alvindimas05.lagassist.Reflection;
 import org.bukkit.Bukkit;
@@ -24,16 +25,32 @@ public class PacketInjector {
             return;
         }
         try {
-            if(VersionMgr.isV_20Plus()){
-                PacketInjector.playerConnection = Reflection.getClass("{nms}.level.EntityPlayer").getField("c");
-                PacketInjector.networkManager = Reflection.getClass("{nms}.network.PlayerConnection").getField("e");
+            if (VersionMgr.isV_20Plus()) {
+                // 1.20+ Mojang mappings (Paper)
+                PacketInjector.playerConnection = Objects.requireNonNull(
+                        Reflection.getClass("net.minecraft.server.level.ServerPlayer")
+                ).getField("connection");
 
-                PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField("n");
+                PacketInjector.networkManager = Objects.requireNonNull(
+                        Reflection.getClass("net.minecraft.server.network.ServerGamePacketListenerImpl")
+                ).getField("connection");
+
+                PacketInjector.channel = Objects.requireNonNull(
+                        Reflection.getClass("net.minecraft.network.Connection")
+                ).getField("channel");
             } else {
-                PacketInjector.playerConnection = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.level.EntityPlayer" : "{nms}.EntityPlayer").getField(VersionMgr.isV_17Plus() ? "b" : "playerConnection");
-                PacketInjector.networkManager = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.network.PlayerConnection" : "{nms}.PlayerConnection").getField(VersionMgr.isV_17Plus() ? "a" : "networkManager");
+                // Legacy versions (<1.20)
+                PacketInjector.playerConnection = Objects.requireNonNull(
+                        Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.level.EntityPlayer" : "{nms}.EntityPlayer")
+                ).getField(VersionMgr.isV_17Plus() ? "b" : "playerConnection");
 
-                PacketInjector.channel = Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager").getField(VersionMgr.isV_17Plus() ? "k" : "channel");
+                PacketInjector.networkManager = Objects.requireNonNull(
+                        Reflection.getClass(VersionMgr.isV_17Plus() ? "{nms}.network.PlayerConnection" : "{nms}.PlayerConnection")
+                ).getField(VersionMgr.isV_17Plus() ? "a" : "networkManager");
+
+                PacketInjector.channel = Objects.requireNonNull(
+                        Reflection.getClass(VersionMgr.isV_17Plus() ? "{nm}.network.NetworkManager" : "{nms}.NetworkManager")
+                ).getField(VersionMgr.isV_17Plus() ? "k" : "channel");
             }
 
             PacketInjector.refreshSessions();
@@ -54,7 +71,7 @@ public class PacketInjector {
         }
         try {
             final Channel channel = PacketInjector
-                .getChannel(PacketInjector.getNetworkManager(Reflection.getNmsPlayer(p)));
+                    .getChannel(PacketInjector.getNetworkManager(Reflection.getNmsPlayer(p)));
             if (channel == null) {
                 return;
             }
@@ -122,7 +139,7 @@ public class PacketInjector {
         }
         try {
             final Channel channel = PacketInjector
-                .getChannel(PacketInjector.getNetworkManager(Reflection.getNmsPlayer(p)));
+                    .getChannel(PacketInjector.getNetworkManager(Reflection.getNmsPlayer(p)));
             if (channel == null) {
                 return;
             }

@@ -5,7 +5,10 @@ import java.util.Map;
 
 import org.alvindimas05.lagassist.Main;
 import org.alvindimas05.lagassist.utils.Cache;
+import org.alvindimas05.lagassist.utils.CustomLogger;
+import org.alvindimas05.lagassist.utils.ServerType;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -19,246 +22,252 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class ChkLimiter implements Listener {
 
-	private static Cache<Chunk, Entity[]> entcache = new Cache<Chunk, Entity[]>(30);
-	private static Cache<Chunk, BlockState[]> tilecache = new Cache<Chunk, BlockState[]>(100);
-	private static int moblimit = -1;
-	private static int tilelimit = -1;
+    private static final Cache<Chunk, Entity[]> entcache = new Cache<Chunk, Entity[]>(30);
+    private static final Cache<Chunk, BlockState[]> tilecache = new Cache<Chunk, BlockState[]>(100);
+    private static int moblimit = -1;
+    private static int tilelimit = -1;
 
-	public static void Enabler(boolean reload) {
-		if (!reload) {
-			Main.p.getServer().getPluginManager().registerEvents(new ChkLimiter(), Main.p);
-			runTask();
-		}
-		Bukkit.getLogger().info("    §e[§a✔§e] §fChunk Limiter.");
+    public static void Enabler(boolean reload) {
+        if (!reload) {
+            Main.p.getServer().getPluginManager().registerEvents(new ChkLimiter(), Main.p);
+            runTask();
+        }
+        CustomLogger.info(ChatColor.YELLOW + "    [" + ChatColor.GREEN + "✔" + ChatColor.YELLOW + "] "
+                + ChatColor.WHITE + "Chunk Limiter enabled.");
 
-		moblimit = Main.config.getInt("limiter.mobs.total-limit");
-		tilelimit = Main.config.getInt("limiter.tiles.total-limit");
-	}
+        moblimit = Main.config.getInt("limiter.mobs.total-limit");
+        tilelimit = Main.config.getInt("limiter.tiles.total-limit");
+    }
 
-	static int i = 0;
+    static int i = 0;
 
-	private static void runTask() {
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.p, () -> {
-			i++;
+    private static void runTask() {
+        long interval = 1L;
+        int timerTime = Main.config.getInt("limiter.timer-time");
 
-			if (i % Main.config.getInt("limiter.timer-time") == 0) {
-				for (World w : Bukkit.getWorlds()) {
-					for (Chunk chk : w.getLoadedChunks()) {
-						Map<EntityType, Integer> counts = new HashMap<EntityType, Integer>();
-						for (Entity ent : chk.getEntities()) {
-							
-							if (Main.config.getBoolean("limiter.ignore-named-mobs") && ent.getCustomName() != null) {
-								continue;
-							}
-							
-							EntityType type = ent.getType();
-							
-							int allowed = getMobMaxHard(type);
-							
-							if (allowed == -1) {
-								continue;
-							}
+        if (ServerType.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().run(Main.p, task -> tickLimiter(timerTime));
+        } else {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    tickLimiter(timerTime);
+                }
+            }.runTaskTimer(Main.p, interval, interval);
+        }
+    }
 
-							int count = counts.getOrDefault(ent.getType(), 0);
 
-							// Over 30 bye
-							if (count < allowed) {
-								counts.put(type, count + 1);
-								continue;
-							}
+    private static void tickLimiter(int timerTime) {
+        i++;
 
-							ent.remove();
-						}
-					}
-				}
-			}
+        if (i % timerTime == 0) {
+            for (World w : Bukkit.getWorlds()) {
+                for (Chunk chk : w.getLoadedChunks()) {
+                    Map<EntityType, Integer> counts = new HashMap<>();
 
-			tilecache.tick();
-			entcache.tick();
-		}, 1L, 1L);
+                    for (Entity ent : chk.getEntities()) {
+                        if (Main.config.getBoolean("limiter.ignore-named-mobs") && ent.getCustomName() != null) {
+                            continue;
+                        }
 
-	}
+                        EntityType type = ent.getType();
+                        int allowed = getMobMaxHard(type);
 
-	private static int getMobMaxHard(EntityType entype) {
-		String location = "limiter.mobs.hard-limit." + entype.toString().toLowerCase();
-		if (Main.config.contains(location)) {
-			return Main.config.getInt(location);
-		}
-		return -1;
-	}
+                        if (allowed == -1) {
+                            continue;
+                        }
 
-	private static int getMobMaxSoft(EntityType entype) {
-		String location = "limiter.mobs.soft-limit." + entype.toString().toLowerCase();
-		if (Main.config.contains(location)) {
-			return Main.config.getInt(location);
-		}
-		return -1;
-	}
+                        int count = counts.getOrDefault(type, 0);
 
-	private static int getMobMaxSoft(Entity ent) {
-		return getMobMaxSoft(ent.getType());
-	}
+                        if (count >= allowed) {
+                            ent.remove();
+                        } else {
+                            counts.put(type, count + 1);
+                        }
+                    }
+                }
+            }
+        }
 
-	private static int getTileMax(Class<?> cls) {
-		String location = "limiter.tiles.per-limit." + cls.getSimpleName().toLowerCase();
-		if (Main.config.contains(location)) {
-			return Main.config.getInt(location);
-		}
-		return -1;
-	}
+        tilecache.tick();
+        entcache.tick();
+    }
 
-	private static int getTileMax(Block b) {
-		return getTileMax(b.getState().getClass());
-	}
 
-	private static int getMobCount(Chunk chk, EntityType entype) {
-		int ents = 0;
+    private static int getMobMaxHard(EntityType entype) {
+        String location = "limiter.mobs.hard-limit." + entype.toString().toLowerCase();
+        if (Main.config.contains(location)) {
+            return Main.config.getInt(location);
+        }
+        return -1;
+    }
 
-		if (!entcache.isCached(chk)) {
-			entcache.putCached(chk, chk.getEntities());
-		}
+    private static int getMobMaxSoft(EntityType entype) {
+        String location = "limiter.mobs.soft-limit." + entype.toString().toLowerCase();
+        if (Main.config.contains(location)) {
+            return Main.config.getInt(location);
+        }
+        return -1;
+    }
 
-		for (Entity ent : entcache.getCached(chk)) {
-			if (ent == null) {
-				continue;
-			}
+    private static int getMobMaxSoft(Entity ent) {
+        return getMobMaxSoft(ent.getType());
+    }
 
-			if (ent.getType() != entype) {
-				continue;
-			}
-			ents++;
-		}
-		return ents;
-	}
+    private static int getTileMax(Class<?> cls) {
+        String location = "limiter.tiles.per-limit." + cls.getSimpleName().toLowerCase();
+        if (Main.config.contains(location)) {
+            return Main.config.getInt(location);
+        }
+        return -1;
+    }
 
-	private static int getMobCount(Chunk chk) {
-		return chk.getEntities().length;
-	}
+    private static int getTileMax(Block b) {
+        return getTileMax(b.getState().getClass());
+    }
 
-	private static int getTileCount(Chunk chk, Class<?> type) {
-		int tls = 0;
+    private static int getMobCount(Chunk chk, EntityType entype) {
+        int ents = 0;
 
-		if (!tilecache.isCached(chk)) {
-			tilecache.putCached(chk, chk.getTileEntities());
-		}
+        if (!entcache.isCached(chk)) {
+            entcache.putCached(chk, chk.getEntities());
+        }
 
-		for (BlockState tle : tilecache.getCached(chk)) {
-			if (tle == null) {
-				continue;
-			}
+        for (Entity ent : entcache.getCached(chk)) {
+            if (ent == null) {
+                continue;
+            }
 
-			if (!tle.getClass().equals(type)) {
-				continue;
-			}
-			tls++;
-		}
-		return tls;
-	}
+            if (ent.getType() != entype) {
+                continue;
+            }
+            ents++;
+        }
+        return ents;
+    }
 
-	private static int getTileCount(Chunk chk) {
-		return chk.getTileEntities().length;
-	}
+    private static int getMobCount(Chunk chk) {
+        return chk.getEntities().length;
+    }
 
-	// VERIFIERS (CODE QUALITY IMPROVERS)
-	private static boolean isDeniedMob(Entity ent) {
+    private static int getTileCount(Chunk chk, Class<?> type) {
+        int tls = 0;
 
-		if (Main.config.getBoolean("limiter.ignore-named-mobs") && ent.getCustomName() != null) {
-			return false;
-		}
-		
-		EntityType etype = ent.getType();
+        if (!tilecache.isCached(chk)) {
+            tilecache.putCached(chk, chk.getTileEntities());
+        }
 
-		// Fix issues with destroying player objects.
-		if (etype == EntityType.PLAYER) {
-			return false;
-		}
+        for (BlockState tle : tilecache.getCached(chk)) {
+            if (tle == null) {
+                continue;
+            }
 
-		Chunk chk = ent.getLocation().getChunk();
+            if (!tle.getClass().equals(type)) {
+                continue;
+            }
+            tls++;
+        }
+        return tls;
+    }
 
-		int current = getMobCount(chk, etype);
-		int maximum = getMobMaxSoft(ent);
+    private static int getTileCount(Chunk chk) {
+        return chk.getTileEntities().length;
+    }
 
-		if (maximum < 0) {
-			current = getMobCount(chk);
-			maximum = moblimit;
-		}
+    // VERIFIERS (CODE QUALITY IMPROVERS)
+    private static boolean isDeniedMob(Entity ent) {
 
-		if (maximum < 0) {
-			return false;
-		}
+        if (Main.config.getBoolean("limiter.ignore-named-mobs") && ent.getCustomName() != null) {
+            return false;
+        }
 
-		if (current < maximum) {
-			return false;
-		}
+        EntityType etype = ent.getType();
 
-		return true;
+        // Fix issues with destroying player objects.
+        if (etype == EntityType.PLAYER) {
+            return false;
+        }
 
-	}
+        Chunk chk = ent.getLocation().getChunk();
 
-	private static boolean isDeniedTile(Block b) {
+        int current = getMobCount(chk, etype);
+        int maximum = getMobMaxSoft(ent);
 
-		Chunk chk = b.getLocation().getChunk();
-		Class<?> type = b.getState().getClass();
-		
-		String typename = type.getSimpleName().toLowerCase();
-		
-		Main.sendDebug("isDeniedTile: " + typename, 1);
-		
-		if (typename.equals("craftblockstate")) {
-			return false;
-		}
+        if (maximum < 0) {
+            current = getMobCount(chk);
+            maximum = moblimit;
+        }
 
-		int current = getTileCount(chk, type);
-		int maximum = getTileMax(b);
+        if (maximum < 0) {
+            return false;
+        }
 
-		if (maximum < 0) {
-			current = getTileCount(chk);
-			maximum = tilelimit;
-		}
+        return current >= maximum;
 
-		if (maximum < 0) {
-			return false;
-		}
+    }
 
-		if (current < maximum) {
-			return false;
-		}
+    private static boolean isDeniedTile(Block b) {
 
-		return true;
-	}
+        Chunk chk = b.getLocation().getChunk();
+        Class<?> type = b.getState().getClass();
 
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onVehicleSpawn(VehicleCreateEvent e) {
-		Vehicle ent = e.getVehicle();
+        String typename = type.getSimpleName().toLowerCase();
 
-		// 1.8 doesn't support cancel. Fuk
-		if (isDeniedMob(ent)) {
-			ent.remove();
-		}
-	}
+        Main.sendDebug("isDeniedTile: " + typename, 1);
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onSpawn(EntitySpawnEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
+        if (typename.equals("craftblockstate")) {
+            return false;
+        }
 
-		Entity ent = e.getEntity();
+        int current = getTileCount(chk, type);
+        int maximum = getTileMax(b);
 
-		e.setCancelled(isDeniedMob(ent));
-	}
+        if (maximum < 0) {
+            current = getTileCount(chk);
+            maximum = tilelimit;
+        }
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlace(BlockPlaceEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
-		Block b = e.getBlock();
-		e.setCancelled(isDeniedTile(b));
-	}
-	
+        if (maximum < 0) {
+            return false;
+        }
+
+        return current >= maximum;
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onVehicleSpawn(VehicleCreateEvent e) {
+        Vehicle ent = e.getVehicle();
+
+        // 1.8 doesn't support cancel. Fuk
+        if (isDeniedMob(ent)) {
+            ent.remove();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSpawn(EntitySpawnEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
+
+        Entity ent = e.getEntity();
+
+        e.setCancelled(isDeniedMob(ent));
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlace(BlockPlaceEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
+        Block b = e.getBlock();
+        e.setCancelled(isDeniedTile(b));
+    }
+
 
 }
