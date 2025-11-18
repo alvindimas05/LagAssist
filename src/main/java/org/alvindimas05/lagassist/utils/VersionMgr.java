@@ -30,53 +30,53 @@ public class VersionMgr {
 		}
 	}
 
-	public static boolean isV1_8() {
-		return Bukkit.getVersion().startsWith("1.8");
-	}
+    public static boolean isV1_8() {
+        return Bukkit.getVersion().contains("1.8.");
+    }
 
-	public static boolean isV1_9() {
-		return Bukkit.getVersion().startsWith("1.9");
-	}
+    public static boolean isV1_9() {
+        return Bukkit.getVersion().contains("1.9.");
+    }
 
-	public static boolean isV1_10() {
-		return Bukkit.getVersion().startsWith("1.10");
-	}
+    public static boolean isV1_10() {
+        return Bukkit.getVersion().contains("1.10.");
+    }
 
-	public static boolean isV1_11() {
-		return Bukkit.getVersion().startsWith("1.11");
-	}
+    public static boolean isV1_11() {
+        return Bukkit.getVersion().contains("1.11.");
+    }
 
-	public static boolean isV1_12() {
-		return Bukkit.getVersion().startsWith("1.12");
-	}
+    public static boolean isV1_12() {
+        return Bukkit.getVersion().contains("1.12.");
+    }
 
-	public static boolean isV1_13() {
-		return Bukkit.getVersion().startsWith("1.13");
-	}
+    public static boolean isV1_13() {
+        return Bukkit.getVersion().contains("1.13.");
+    }
 
-	public static boolean isV1_14() {
-		return Bukkit.getVersion().startsWith("1.14");
-	}
+    public static boolean isV1_14() {
+        return Bukkit.getVersion().contains("1.14.");
+    }
 
-	public static boolean isV1_17() {
-		return Bukkit.getVersion().startsWith("1.17");
-	}
+    public static boolean isV1_17() {
+        return Bukkit.getVersion().contains("1.17.");
+    }
 
-	public static boolean isV1_18() {
-		return Bukkit.getVersion().startsWith("1.18");
-	}
+    public static boolean isV1_18() {
+        return Bukkit.getVersion().contains("1.18.");
+    }
 
-	public static boolean isV1_19() {
-		return Bukkit.getVersion().startsWith("1.19");
-	}
+    public static boolean isV1_19() {
+        return Bukkit.getVersion().contains("1.19.");
+    }
 
-	public static boolean isV1_20() {
-		return Bukkit.getVersion().startsWith("1.20");
-	}
+    public static boolean isV1_20() {
+        return Bukkit.getVersion().contains("1.20.");
+    }
 
-	public static boolean isV1_21() {
-		return Bukkit.getVersion().startsWith("1.21");
-	}
+    public static boolean isV1_21() {
+        return Bukkit.getVersion().contains("1.21.");
+    }
 
 	public static boolean isV_17Plus() {
 		return isV1_17() || isV1_18() || isV1_19() || isV1_20() || isV1_21();
@@ -91,6 +91,7 @@ public class VersionMgr {
 	}
 
 	public static boolean isNewMaterials() {
+        Bukkit.getLogger().info("[VersionMgr] Version is " + Bukkit.getVersion());
 		if (isV1_8()) {
 			return false;
 		}

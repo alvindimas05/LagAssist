@@ -8,6 +8,7 @@ import org.alvindimas05.lagassist.mobs.SpawnerMgr;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.scheduler.BukkitTask;
 
 import org.alvindimas05.lagassist.hoppers.ChunkHoppers;
@@ -167,10 +168,10 @@ public class Monitor {
 							exactTPS = ext;
 						}
 					}, 0L);
-				} catch (IllegalStateException e) {
+				} catch (IllegalStateException | IllegalPluginAccessException e) {
 					btk.cancel();
 				}
-			}
+            }
 
 		}, 60L, 1L);
 	}
