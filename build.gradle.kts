@@ -15,7 +15,7 @@ repositories {
 
 
 group = "org.alvindimas05.lagassist"
-version = "2.32.5"
+version = "2.32.6"
 description = "LagAssist"
 
 java {
@@ -33,7 +33,7 @@ java {
 dependencies {
 //    Older paper-api only supports up to 1.16.5
 //    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("net.milkbowl.vault:VaultAPI:1.7")
 
     implementation("com.google.code.gson:gson:2.11.0")
